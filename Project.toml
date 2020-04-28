@@ -1,0 +1,9 @@
+name = "SystemBenchmark"
+uuid = "30cdaa97-48ad-4abc-9688-3a7175b8083d"
+version = "0.1.0"
+
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+PkgBenchmark = "32113eaa-f34f-5b0d-bd6c-c81e245fc73d"
