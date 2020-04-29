@@ -38,14 +38,14 @@ function sysbenchmark()
     return df
 end
 
-function compare(res1::DataFrame, res2::DataFrame)
-    @assert res1.testname == res2.testname "Testsuites seem to be different"
-    return DataFrame(cat=res1.cat, testname=res1.testname, res1_ms=res1.ms, res2_ms=res2.ms, factor=res2.ms ./ res1.ms)
+function compare(ref::DataFrame, res::DataFrame)
+    @assert ref.testname == res.testname "Testsuites seem to be different"
+    return DataFrame(cat=ref.cat, testname=ref.testname, ref_ms=ref.ms, res_ms=res.ms, factor=res.ms ./ ref.ms)
 end
 
-function compareToRef(res2::DataFrame; refname="1-2018MBP_MacOS.csv")
-    res1 = CSV.read(joinpath(dirname(@__DIR__), "ref", refname))
-    return compare(res1, res2)
+function compareToRef(res::DataFrame; refname="1-2018MBP_MacOS.csv")
+    ref = CSV.read(joinpath(dirname(@__DIR__), "ref", refname))
+    return compare(ref, res)
 end
 
 ## CPU
