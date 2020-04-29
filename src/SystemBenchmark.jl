@@ -35,6 +35,7 @@ function sysbenchmark()
     t = @benchmark runjulia("using CSV"); append!(df, DataFrame(cat="loading", testname="UsingCSV", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
     t = @benchmark runjulia("using VideoIO"); append!(df, DataFrame(cat="loading", testname="UsingVideoIO", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
     
+    println("")
     return df
 end
 
