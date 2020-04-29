@@ -10,7 +10,7 @@ export sysbenchmark, compare, compareToRef
 
 function sysbenchmark()
     df = DataFrame(cat=String[], testname=String[], ms=Float64[])
-    prog = ProgressUnknown()
+    prog = Progress(10)
 
     prog.desc = "CPU tests"
     t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", ms=median(t).time / 1e6)); next!(prog)
