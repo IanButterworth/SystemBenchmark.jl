@@ -10,7 +10,7 @@ export sysbenchmark, compare, compareToRef
 
 function sysbenchmark()
     df = DataFrame(cat=String[], testname=String[], ms=Float64[])
-    prog = Progress(10)
+    prog = Progress(13)
 
     prog.desc = "CPU tests"
     t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", ms=median(t).time / 1e6)); next!(prog)
@@ -30,10 +30,10 @@ function sysbenchmark()
     
     prog.desc = "Julia loading tests"
     
-    t = @benchmark runjulia("1+1"); append!(df, DataFrame(cat="loading", testname="JuliaLoad", ms=median(t).time / 1e6))
+    t = @benchmark runjulia("1+1"); append!(df, DataFrame(cat="loading", testname="JuliaLoad", ms=median(t).time / 1e6)); next!(prog)
     juliatime = median(t).time / 1e6
-    t = @benchmark runjulia("using CSV"); append!(df, DataFrame(cat="loading", testname="UsingCSV", ms=(median(t).time / 1e6)-juliatime))
-    t = @benchmark runjulia("using VideoIO"); append!(df, DataFrame(cat="loading", testname="UsingVideoIO", ms=(median(t).time / 1e6)-juliatime))
+    t = @benchmark runjulia("using CSV"); append!(df, DataFrame(cat="loading", testname="UsingCSV", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
+    t = @benchmark runjulia("using VideoIO"); append!(df, DataFrame(cat="loading", testname="UsingVideoIO", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
     
     return df
 end
