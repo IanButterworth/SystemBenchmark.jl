@@ -10,7 +10,7 @@ export sysbenchmark, compare, compareToRef
 
 function sysbenchmark()
     df = DataFrame(cat=String[], testname=String[], ms=Float64[])
-    prog = Progress(13)
+    prog = Progress(16)
 
     prog.desc = "CPU tests"
     t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", ms=median(t).time / 1e6)); next!(prog)
@@ -34,6 +34,9 @@ function sysbenchmark()
     juliatime = median(t).time / 1e6
     t = @benchmark runjulia("using CSV"); append!(df, DataFrame(cat="loading", testname="UsingCSV", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
     t = @benchmark runjulia("using VideoIO"); append!(df, DataFrame(cat="loading", testname="UsingVideoIO", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
+    t = @benchmark runjulia("using CUDAnative"); append!(df, DataFrame(cat="loading", testname="UsingCUDAnative", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
+    t = @benchmark runjulia("using Zygote"); append!(df, DataFrame(cat="loading", testname="UsingZygote", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
+    t = @benchmark runjulia("using Flux"); append!(df, DataFrame(cat="loading", testname="UsingFlux", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
     
     println("")
     return df
