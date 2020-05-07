@@ -76,12 +76,12 @@ Environment:
 
 ```
 
-Save to disk
+Save to disk (includes a system report)
 ```
-julia> writeBenchmar("/path/to/file.txt",res)
+writeBenchmark(path::String, res::DataFrame)
 ```
 
-Compare two benchmarks
+Compare two benchmarks (no system reports)
 ```
 compare(ref::DataFrame, res::DataFrame)
 ```
