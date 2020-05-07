@@ -11,12 +11,19 @@ using VideoIO
 export sysbenchmark, compare, compareToRef
 
 function sysbenchmark()
+    ntests = 12
+    if CuArrays.functional()
+        ntests += 1
+    else
+        @info "CuArrays.functional() == false. No usable GPU detected"
+    end
+        
     buf = PipeBuffer()
     InteractiveUtils.versioninfo(buf, verbose=false)
     systeminfo = read(buf, String)
 
     df = DataFrame(cat=String[], testname=String[], ms=Float64[])
-    prog = ProgressMeter.Progress(12) 
+    prog = ProgressMeter.Progress(ntests) 
     prog.desc = "CPU tests"
     t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark sin(x) setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatSin", ms=median(t).time / 1e6)); next!(prog)
