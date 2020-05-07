@@ -44,7 +44,6 @@ end
 
 function compare(ref::DataFrame, test::DataFrame)
 	df = DataFrame(cat=String[], testname=String[], ref_ms=Float64[], test_ms=Float64[], factor=Float64[])
-    @show unique(test.testname)
     for testname in unique(test.testname)
 		testrow = test[test.testname .== testname, :]
 		refrow = ref[ref.testname .== testname, :]

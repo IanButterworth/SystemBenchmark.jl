@@ -13,7 +13,7 @@ Julia> res = sysbenchmark()
 │ 1   │ cpu     │ FloatMul        │ 1.61e-6     │
 │ 2   │ cpu     │ FloatSin        │ 5.681e-6    │
 │ 3   │ cpu     │ VecMulBroad     │ 4.72799e-5  │
-│ 4   │ cpu     │ MatMul          │ 0.000379541 │
+│ 4   │ cpu     │ CPUMatMul       │ 0.000379541 │
 │ 5   │ cpu     │ MatMulBroad     │ 0.000165929 │
 │ 6   │ cpu     │ 3DMulBroad      │ 0.00184215  │
 │ 7   │ cpu     │ FFMPEGH264Write │ 230.533     │
@@ -64,7 +64,7 @@ Environment:
 │ 1   │ cpu         │ FloatMul        │ 1.134e-6    │ 1.715e-6    │ 1.51235 │
 │ 2   │ cpu         │ FloatSin        │ 4.051e-6    │ 4.951e-6    │ 1.22217 │
 │ 3   │ cpu         │ VecMulBroad     │ 2.99025e-5  │ 3.92925e-5  │ 1.31402 │
-│ 4   │ cpu         │ MatMul          │ 0.018874    │ 0.037066    │ 1.96387 │
+│ 4   │ cpu         │ CPUMatMul       │ 0.018874    │ 0.037066    │ 1.96387 │
 │ 5   │ cpu         │ MatMulBroad     │ 0.00413388  │ 0.0192804   │ 4.664   │
 │ 6   │ cpu         │ 3DMulBroad      │ 0.0010365   │ 0.0016829   │ 1.62364 │
 │ 7   │ cpu         │ FFMPEGH264Write │ 105.757     │ 230.524     │ 2.17976 │
