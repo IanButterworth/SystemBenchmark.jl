@@ -24,19 +24,14 @@ Julia> res = sysbenchmark()
 │ 12  │ loading │ UsingCSV        │ 1772.47     │
 │ 13  │ loading │ UsingVideoIO    │ 4002.58     │
 ```
-Save to disk
-```
-julia> writeBenchmar("/path/to/file.txt",res)
-```
 
-Compare two benchmarks
+Compare benchmark to the default reference (a 2019 MSI Linux Laptop)
 ```
-compare(ref::DataFrame, res::DataFrame)
+julia> comparison_df = compareToRef()
 ```
-
-Compare benchmark to the default reference (currently a 2018 i7 Macbook pro)
+or
 ```
-julia> compareToRef()
+julia> comparison_df = compareToRef(sysbenchmark())
 Reference system ----------------------
 Julia Version 1.4.1
 Commit 381693d3df* (2020-04-14 17:20 UTC)
@@ -79,4 +74,14 @@ Environment:
 │ 11  │ loading     │ JuliaLoad       │ 91.921      │ 218.228     │ 2.37409 │
 │ 12  │ compilation │ compilecache    │ 118.46      │ 111.396     │ 0.94037 │
 
+```
+
+Save to disk
+```
+julia> writeBenchmar("/path/to/file.txt",res)
+```
+
+Compare two benchmarks
+```
+compare(ref::DataFrame, res::DataFrame)
 ```

@@ -43,14 +43,15 @@ function readBenchmark(path::String)
 end
 
 function compare(ref::DataFrame, test::DataFrame)
-	df = DataFrame(cat=String[], testname=String[], ref_ms=Float64[], res_ms=Float64[], factor=Float64[])
-	for testname in unique(test.testname)
+	df = DataFrame(cat=String[], testname=String[], ref_ms=Float64[], test_ms=Float64[], factor=Float64[])
+    @show unique(test.testname)
+    for testname in unique(test.testname)
 		testrow = test[test.testname .== testname, :]
 		refrow = ref[ref.testname .== testname, :]
     	push!(df, Dict(:cat=>testrow.cat[1], 
 			:testname=>testname, 
 			:ref_ms=>refrow.ms[1], 
-			:res_ms=>testrow.ms[1], 
+			:test_ms=>testrow.ms[1], 
 			:factor=>testrow.ms[1] ./ refrow.ms[1]
 			))
 	end
@@ -63,18 +64,7 @@ function compare(ref_sysinfo::String, ref::DataFrame, test_sysinfo::String, test
     println("Test system ---------------------------")
     println(test_sysinfo)
     println("")
-	df = DataFrame(cat=String[], testname=String[], ref_ms=Float64[], test_ms=Float64[], factor=Float64[])
-	for testname in unique(test.testname)
-		testrow = test[test.testname .== testname, :]
-		refrow = ref[ref.testname .== testname, :]
-    	push!(df, Dict(:cat=>testrow.cat[1], 
-			:testname=>testname, 
-			:ref_ms=>refrow.ms[1], 
-			:test_ms=>testrow.ms[1], 
-			:factor=>testrow.ms[1] ./ refrow.ms[1]
-			))
-	end
-	return df
+    return compare(ref::DataFrame, test::DataFrame)
 end
 
 compareToRef() = compareToRef(sysbenchmark(printsysinfo = false))
@@ -101,7 +91,7 @@ function sysbenchmark(;printsysinfo = true)
     t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark sin(x) setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatSin", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark x .* x setup=(x=rand(10)); append!(df, DataFrame(cat="cpu", testname="VecMulBroad", ms=median(t).time / 1e6)); next!(prog)
-    t = @benchmark x * x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="MatMul", ms=median(t).time / 1e6)); next!(prog)
+    t = @benchmark x * x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="CPUMatMul", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark x .* x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="MatMulBroad", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark x .* x setup=(x=rand(10,10,10)); append!(df, DataFrame(cat="cpu", testname="3DMulBroad", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark writevideo(imgstack) setup=(imgstack=map(x->rand(UInt8,100,100), 1:100)); append!(df, DataFrame(cat="cpu", testname="FFMPEGH264Write", ms=median(t).time / 1e6)); next!(prog)
@@ -109,7 +99,7 @@ function sysbenchmark(;printsysinfo = true)
     if HAS_GPU[]
         prog.desc = "GPU tests"
         x=cu(rand(Float32,100,100))
-        t = @benchmark $x * $x; append!(df, DataFrame(cat="gpu", testname="MatMul", ms=median(t).time / 1e6)); next!(prog)
+        t = @benchmark $x * $x; append!(df, DataFrame(cat="gpu", testname="GPUMatMul", ms=median(t).time / 1e6)); next!(prog)
     end
 
     prog.desc = "Memory tests"
