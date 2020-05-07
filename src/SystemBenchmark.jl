@@ -8,19 +8,83 @@ using Logging
 using ProgressMeter
 using VideoIO
 
-export sysbenchmark, compare, compareToRef
+export sysbenchmark, compare, compareToRef, saveBenchmark, readBenchmark
+
+function getSystemInfo()
+    buf = PipeBuffer()
+    InteractiveUtils.versioninfo(buf, verbose=false)
+    systeminfo = read(buf, String)
+    CuArrays.functional() && (systeminfo *= string("\n  GPU (used by CuArrays): $(CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device()))"))
+    return systeminfo
+end
+
+function saveBenchmark(path::String, res::DataFrame)
+    systeminfo = getSystemInfo()
+    open(path, "w") do io
+        println(io, systeminfo)
+        println(io, "--INFO END--")
+        CSV.write(io, res, append=true)
+    end
+end
+function readBenchmark(path::String)
+    lines = readlines(path)
+    divider = findfirst(occursin.("--INFO END--",lines))
+    s = open(f->read(f, String), path)
+    systeminfo = split(s,"--INFO END--")[1]
+    res = DataFrame(CSV.File(path, skipto=divider+2, header=divider+1))
+    return systeminfo, res
+end
+
+function compare(ref::DataFrame, res::DataFrame)
+	df = DataFrame(cat=String[], testname=String[], ref_ms=Float64[], res_ms=Float64[], factor=Float64[])
+	for testname in unique(res.testname)
+		resrow = res[res.testname .== testname, :]
+		refrow = ref[ref.testname .== testname, :]
+    	push!(df, Dict(:cat=>resrow.cat[1], 
+			:testname=>testname, 
+			:ref_ms=>refrow.ms[1], 
+			:res_ms=>resrow.ms[1], 
+			:factor=>resrow.ms[1] ./ refrow.ms[1]
+			))
+	end
+	return df
+end
+
+function compare(ref_sysinfo::String, ref::DataFrame, test_sysinfo::String, test::DataFrame)
+    println("Reference system")
+    println(ref_sysinfo)
+    println("Test system")
+    println(test_sysinfo)
+    println("")
+	df = DataFrame(cat=String[], testname=String[], ref_ms=Float64[], test_ms=Float64[], factor=Float64[])
+	for testname in unique(test.testname)
+		testrow = test[test.testname .== testname, :]
+		refrow = ref[ref.testname .== testname, :]
+    	push!(df, Dict(:cat=>resrow.cat[1], 
+			:testname=>testname, 
+			:ref_ms=>refrow.ms[1], 
+			:test_ms=>testrow.ms[1], 
+			:factor=>testrow.ms[1] ./ refrow.ms[1]
+			))
+	end
+	return df
+end
+
+function compareToRef(test::DataFrame; refname="1-linux-i7-2.6GHz-GTX1650.csv")
+    test_sysinfo = getSystemInfo()
+    ref_sysinfo, ref = readBenchmark(joinpath(dirname(@__DIR__), "ref", refname))
+    return compare(ref_sysinfo, ref, test_sysinfo, test)
+end
 
 function sysbenchmark()
     ntests = 12
+    systeminfo = getSystemInfo()
+
     if CuArrays.functional()
         ntests += 1
     else
         @info "CuArrays.functional() == false. No usable GPU detected"
     end
-        
-    buf = PipeBuffer()
-    InteractiveUtils.versioninfo(buf, verbose=false)
-    systeminfo = read(buf, String)
 
     df = DataFrame(cat=String[], testname=String[], ms=Float64[])
     prog = ProgressMeter.Progress(ntests) 
@@ -37,7 +101,6 @@ function sysbenchmark()
         prog.desc = "GPU tests"
         x=cu(rand(Float32,100,100))
         t = @benchmark $x * $x; append!(df, DataFrame(cat="gpu", testname="MatMul", ms=median(t).time / 1e6)); next!(prog)
-        systeminfo *= string("\n---\n$(CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device()))")
     end
 
     prog.desc = "Memory tests"
@@ -61,25 +124,6 @@ function sysbenchmark()
     finish!(prog)
     println(systeminfo)
     return df
-end
-
-function compare(ref::DataFrame, res::DataFrame)
-	df = DataFrame(cat=String[], testname=String[], ref_ms=Float64[], res_ms=Float64[], factor=Float64[])
-	for testname in unique(res.testname)
-		resrow = res[res.testname .== testname, :]
-		refrow = ref[ref.testname .== testname, :]
-    	push!(df, Dict(:cat=>resrow.cat[1], 
-			:testname=>testname, 
-			:ref_ms=>refrow.ms[1], 
-			:res_ms=>resrow.ms[1], 
-			:factor=>resrow.ms[1] ./ refrow.ms[1]
-			))
-	end
-	return df
-end
-function compareToRef(res::DataFrame; refname="1-2018MBP_MacOS.csv")
-    ref = CSV.read(joinpath(dirname(@__DIR__), "ref", refname))
-    return compare(ref, res)
 end
 ## CPU
 function writevideo(imgstack, delete::Bool=true)
