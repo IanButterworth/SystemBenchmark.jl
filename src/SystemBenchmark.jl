@@ -14,7 +14,7 @@ function getSystemInfo()
     buf = PipeBuffer()
     InteractiveUtils.versioninfo(buf, verbose=false)
     systeminfo = read(buf, String)
-    CuArrays.functional() && (systeminfo *= string("\n  GPU (used by CuArrays): $(CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device()))"))
+    CuArrays.functional() && (systeminfo *= string("  GPU: $(CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device()))"))
     return systeminfo
 end
 
@@ -23,6 +23,7 @@ function saveBenchmark(path::String, res::DataFrame)
     open(path, "w") do io
         println(io, systeminfo)
         println(io, "--INFO END--")
+        println(io,"cat,testname,ms")
         CSV.write(io, res, append=true)
     end
 end
@@ -35,32 +36,32 @@ function readBenchmark(path::String)
     return systeminfo, res
 end
 
-function compare(ref::DataFrame, res::DataFrame)
+function compare(ref::DataFrame, test::DataFrame)
 	df = DataFrame(cat=String[], testname=String[], ref_ms=Float64[], res_ms=Float64[], factor=Float64[])
-	for testname in unique(res.testname)
-		resrow = res[res.testname .== testname, :]
+	for testname in unique(test.testname)
+		testrow = test[test.testname .== testname, :]
 		refrow = ref[ref.testname .== testname, :]
-    	push!(df, Dict(:cat=>resrow.cat[1], 
+    	push!(df, Dict(:cat=>testrow.cat[1], 
 			:testname=>testname, 
 			:ref_ms=>refrow.ms[1], 
-			:res_ms=>resrow.ms[1], 
-			:factor=>resrow.ms[1] ./ refrow.ms[1]
+			:res_ms=>testrow.ms[1], 
+			:factor=>testrow.ms[1] ./ refrow.ms[1]
 			))
 	end
 	return df
 end
 
 function compare(ref_sysinfo::String, ref::DataFrame, test_sysinfo::String, test::DataFrame)
-    println("Reference system")
+    println("Reference system ----------------------")
     println(ref_sysinfo)
-    println("Test system")
+    println("Test system ---------------------------")
     println(test_sysinfo)
     println("")
 	df = DataFrame(cat=String[], testname=String[], ref_ms=Float64[], test_ms=Float64[], factor=Float64[])
 	for testname in unique(test.testname)
 		testrow = test[test.testname .== testname, :]
 		refrow = ref[ref.testname .== testname, :]
-    	push!(df, Dict(:cat=>resrow.cat[1], 
+    	push!(df, Dict(:cat=>testrow.cat[1], 
 			:testname=>testname, 
 			:ref_ms=>refrow.ms[1], 
 			:test_ms=>testrow.ms[1], 
@@ -70,10 +71,12 @@ function compare(ref_sysinfo::String, ref::DataFrame, test_sysinfo::String, test
 	return df
 end
 
-function compareToRef(test::DataFrame; refname="1-linux-i7-2.6GHz-GTX1650.csv")
+compareToRef() = compareToRef(sysbenchmark())
+
+function compareToRef(test::DataFrame; refname="1-linux-i7-2.6GHz-GTX1650.txt")
     test_sysinfo = getSystemInfo()
     ref_sysinfo, ref = readBenchmark(joinpath(dirname(@__DIR__), "ref", refname))
-    return compare(ref_sysinfo, ref, test_sysinfo, test)
+    return compare(string(ref_sysinfo), ref, test_sysinfo, test)
 end
 
 function sysbenchmark()

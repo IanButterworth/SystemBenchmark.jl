@@ -1,0 +1,24 @@
+Julia Version 1.4.1
+Commit 381693d3df* (2020-04-14 17:20 UTC)
+Platform Info:
+  OS: Linux (x86_64-pc-linux-gnu)
+  CPU: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-8.0.1 (ORCJIT, skylake)
+  GPU: GeForce GTX 1650 with Max-Q Design
+--INFO END--
+cat,testname,ms
+cpu,FloatMul,1.1339999999999999e-6
+cpu,FloatSin,4.051e-6
+cpu,VecMulBroad,2.990251256281407e-5
+cpu,MatMul,0.018874
+cpu,MatMulBroad,0.004133875
+cpu,3DMulBroad,0.0010365
+cpu,FFMPEGH264Write,105.756765
+gpu,MatMul,0.005283
+mem,DeepCopy,0.00017707386990077178
+diskio,TempdirWrite,0.024308
+diskio,TempdirRead,0.0049865
+loading,JuliaLoad,91.9209515
+compilation,compilecache,118.46028749999999
