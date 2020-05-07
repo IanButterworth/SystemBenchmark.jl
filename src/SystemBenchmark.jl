@@ -124,14 +124,14 @@ function sysbenchmark(;printsysinfo = true)
     return df
 end
 ## CPU
-function writevideo(imgstack, delete::Bool=true)
+function writevideo(imgstack, delete::Bool=false)
     path, io = mktemp()
     VideoIO.encodevideo("$path.mp4", imgstack, silent=true)
     delete && rm(path)
     return path
 end
 ## DiskIO
-function tempwrite(x, delete::Bool=true)
+function tempwrite(x, delete::Bool=false)
     path, io = mktemp()
     write(io, x)
     close(io)
