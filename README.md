@@ -1,5 +1,5 @@
 # SystemBenchmark.jl
- Julia package for benchmarking a system. Contributions very welcome.
+ Julia package for benchmarking a system. Not yet released. Contributions very welcome, to arrive at a stable test set.
 
 Run benchmark
 ```
