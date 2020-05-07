@@ -30,7 +30,7 @@ function sysbenchmark()
         prog.desc = "GPU tests"
         x=cu(rand(Float32,100,100))
         t = @benchmark $x * $x; append!(df, DataFrame(cat="gpu", testname="MatMul", ms=median(t).time / 1e6)); next!(prog)
-        append!(systeminfo, CuArrays.CUDAdrv.device())
+        systeminfo *= string("\n---\n$(CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device()))")
     end
 
     prog.desc = "Memory tests"
