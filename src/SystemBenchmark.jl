@@ -3,6 +3,7 @@ using BenchmarkTools
 using CuArrays
 using CSV
 using DataFrames
+using Logging
 using ProgressMeter
 using VideoIO
 
@@ -15,8 +16,8 @@ function sysbenchmark()
     t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark sin(x) setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatSin", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark x .* x setup=(x=rand(10)); append!(df, DataFrame(cat="cpu", testname="VecMulBroad", ms=median(t).time / 1e6)); next!(prog)
-    t = @benchmark x * x setup=(x=rand(10,10)); append!(df, DataFrame(cat="cpu", testname="MatMul", ms=median(t).time / 1e6)); next!(prog)
-    t = @benchmark x .* x setup=(x=rand(10,10)); append!(df, DataFrame(cat="cpu", testname="MatMulBroad", ms=median(t).time / 1e6)); next!(prog)
+    t = @benchmark x * x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="MatMul", ms=median(t).time / 1e6)); next!(prog)
+    t = @benchmark x .* x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="MatMulBroad", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark x .* x setup=(x=rand(10,10,10)); append!(df, DataFrame(cat="cpu", testname="3DMulBroad", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark writevideo(imgstack) setup=(imgstack=map(x->rand(UInt8,100,100), 1:100)); append!(df, DataFrame(cat="cpu", testname="FFMPEGH264Write", ms=median(t).time / 1e6)); next!(prog)
     prog.desc = "Memory tests"
@@ -28,15 +29,19 @@ function sysbenchmark()
     t = @benchmark runjulia("1+1"); append!(df, DataFrame(cat="loading", testname="JuliaLoad", ms=median(t).time / 1e6)); next!(prog)
     juliatime = median(t).time / 1e6
 
-    prog.desc = "Compilation tests"
-    insert!(LOAD_PATH, 1, @__DIR__); insert!(DEPOT_PATH, 1, mktempdir())
-    t = @benchmark Base.compilecache(Base.PkgId("ExampleModule")); append!(df, DataFrame(cat="compilation", testname="compilecache", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
-    deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
-
     if CuArrays.functional()
         prog.desc = "GPU tests"
-        t = @benchmark x * x setup=(x=cu(rand(Float32,100,100))); append!(df, DataFrame(cat="gpu", testname="MatMul", ms=median(t).time / 1e6)); next!(prog)
+        x=cu(rand(Float32,100,100))
+        t = @benchmark $x * $x; append!(df, DataFrame(cat="gpu", testname="MatMul", ms=median(t).time / 1e6)); next!(prog)
     end
+
+    prog.desc = "Compilation tests"
+    insert!(LOAD_PATH, 1, @__DIR__); insert!(DEPOT_PATH, 1, mktempdir())
+    Logging.disable_logging(Logging.Info)
+    t = @benchmark Base.compilecache(Base.PkgId("ExampleModule")); append!(df, DataFrame(cat="compilation", testname="compilecache", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
+    Logging.disable_logging(Logging.Debug)
+    deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
+
     finish!(prog)
     return df
 end
