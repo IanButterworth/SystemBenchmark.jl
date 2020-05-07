@@ -52,7 +52,7 @@ function sysbenchmark()
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
     finish!(prog)
-    @show systeminfo
+    println(systeminfo)
     return df
 end
 
