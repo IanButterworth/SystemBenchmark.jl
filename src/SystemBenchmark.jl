@@ -75,8 +75,9 @@ function tempwrite(x, delete::Bool=true)
 end
 function tempread(path)
     io = open(path)
-    read(io)
+    x = read(io)
     close(io)
+    return x
 end
 ## Julia Loading
 function runjulia(e)
