@@ -10,11 +10,17 @@ using VideoIO
 
 export sysbenchmark, compare, compareToRef, saveBenchmark, readBenchmark
 
+const HAS_GPU = Ref{Bool}(false)
+
+function __init__()
+    HAS_GPU[] = CuArrays.functional()
+end
+
 function getSystemInfo()
     buf = PipeBuffer()
     InteractiveUtils.versioninfo(buf, verbose=false)
     systeminfo = read(buf, String)
-    CuArrays.functional() && (systeminfo *= string("  GPU: $(CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device()))"))
+    HAS_GPU[] && (systeminfo *= string("  GPU: $(CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device()))"))
     return systeminfo
 end
 
@@ -71,7 +77,7 @@ function compare(ref_sysinfo::String, ref::DataFrame, test_sysinfo::String, test
 	return df
 end
 
-compareToRef() = compareToRef(sysbenchmark())
+compareToRef() = compareToRef(sysbenchmark(printsysinfo = false))
 
 function compareToRef(test::DataFrame; refname="1-linux-i7-2.6GHz-GTX1650.txt")
     test_sysinfo = getSystemInfo()
@@ -79,11 +85,11 @@ function compareToRef(test::DataFrame; refname="1-linux-i7-2.6GHz-GTX1650.txt")
     return compare(string(ref_sysinfo), ref, test_sysinfo, test)
 end
 
-function sysbenchmark()
+function sysbenchmark(;printsysinfo = true)
     ntests = 12
     systeminfo = getSystemInfo()
 
-    if CuArrays.functional()
+    if HAS_GPU[]
         ntests += 1
     else
         @info "CuArrays.functional() == false. No usable GPU detected"
@@ -100,7 +106,7 @@ function sysbenchmark()
     t = @benchmark x .* x setup=(x=rand(10,10,10)); append!(df, DataFrame(cat="cpu", testname="3DMulBroad", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark writevideo(imgstack) setup=(imgstack=map(x->rand(UInt8,100,100), 1:100)); append!(df, DataFrame(cat="cpu", testname="FFMPEGH264Write", ms=median(t).time / 1e6)); next!(prog)
     
-    if CuArrays.functional()
+    if HAS_GPU[]
         prog.desc = "GPU tests"
         x=cu(rand(Float32,100,100))
         t = @benchmark $x * $x; append!(df, DataFrame(cat="gpu", testname="MatMul", ms=median(t).time / 1e6)); next!(prog)
@@ -125,7 +131,7 @@ function sysbenchmark()
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
     finish!(prog)
-    println(systeminfo)
+    printsysinfo && println(systeminfo)
     return df
 end
 ## CPU
