@@ -94,7 +94,8 @@ function sysbenchmark(;printsysinfo = true)
     t = @benchmark x .* x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="MatMulBroad", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark x .* x setup=(x=rand(10,10,10)); append!(df, DataFrame(cat="cpu", testname="3DMulBroad", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark writevideo(imgstack) setup=(imgstack=map(x->rand(UInt8,100,100), 1:100)); append!(df, DataFrame(cat="cpu", testname="FFMPEGH264Write", ms=median(t).time / 1e6)); next!(prog)
-    
+    isfile(joinpath(@__DIR__, "testvideo.mp4")) && rm(joinpath(@__DIR__, "testvideo.mp4"))
+
     if HAS_GPU[]
         prog.desc = "GPU tests"
         x=cu(rand(Float32,100,100))
@@ -105,9 +106,14 @@ function sysbenchmark(;printsysinfo = true)
     t = @benchmark deepcopy(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="mem", testname="DeepCopy", ms=median(t).time / 1e6)); next!(prog)
     
     prog.desc = "Disk IO tests"
-    t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="diskio", testname="TempdirWrite", ms=median(t).time / 1e6)); next!(prog)
-    t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000), false)); append!(df, DataFrame(cat="diskio", testname="TempdirRead", ms=median(t).time / 1e6)); next!(prog)
+    t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1KB", ms=median(t).time / 1e6)); next!(prog)
+    t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1MB", ms=median(t).time / 1e6)); next!(prog)
+    t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1KB", ms=median(t).time / 1e6)); next!(prog)
+    isfile(joinpath(@__DIR__, "testwrite.dat")) && rm(joinpath(@__DIR__, "testwrite.dat"))
+    t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1MB", ms=median(t).time / 1e6)); next!(prog)
+    isfile(joinpath(@__DIR__, "testwrite.dat")) && rm(joinpath(@__DIR__, "testwrite.dat"))
     
+
     prog.desc = "Julia loading tests"
     t = @benchmark runjulia("1+1"); append!(df, DataFrame(cat="loading", testname="JuliaLoad", ms=median(t).time / 1e6)); next!(prog)
     juliatime = median(t).time / 1e6
@@ -124,24 +130,23 @@ function sysbenchmark(;printsysinfo = true)
     return df
 end
 ## CPU
-function writevideo(imgstack, delete::Bool=false)
-    path, io = mktemp()
-    VideoIO.encodevideo("$path.mp4", imgstack, silent=true)
+function writevideo(imgstack; delete::Bool=false, path = joinpath(@__DIR__, "testvideo.mp4"))
+    VideoIO.encodevideo(path, imgstack, silent=true)
     delete && rm(path)
     return path
 end
 ## DiskIO
-function tempwrite(x, delete::Bool=false)
-    path, io = mktemp()
-    write(io, x)
-    close(io)
+function tempwrite(x; delete::Bool=false, path = joinpath(@__DIR__, "testwrite.dat"))
+    open(path, "w") do io
+        write(io, x)
+    end
     delete && rm(path)
     return path
 end
 function tempread(path)
-    io = open(path)
-    x = read(io)
-    close(io)
+    x = open(path) do io
+        read(io)
+    end
     return x
 end
 ## Julia Loading
