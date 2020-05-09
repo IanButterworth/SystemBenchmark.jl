@@ -95,6 +95,7 @@ function sysbenchmark(;printsysinfo = true)
     t = @benchmark x .* x setup=(x=rand(10,10,10)); append!(df, DataFrame(cat="cpu", testname="3DMulBroad", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark writevideo(imgstack) setup=(imgstack=map(x->rand(UInt8,100,100), 1:100)); append!(df, DataFrame(cat="cpu", testname="FFMPEGH264Write", ms=median(t).time / 1e6)); next!(prog)
     t = @benchmark a * b + c setup=(a=rand(),b=rand(),c=rand()); append!(df, DataFrame(cat="cpu", testname="FusedMulAdd", res=median(t).time / 1e6)); next!(prog)
+    append!(df, DataFrame(cat="cpu", testname="peakflops", res=LinearAlgebra.peakflops())); next!(prog)
     isfile(joinpath(@__DIR__, "testvideo.mp4")) && rm(joinpath(@__DIR__, "testvideo.mp4"))
 
     if HAS_GPU[]
