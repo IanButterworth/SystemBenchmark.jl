@@ -121,7 +121,8 @@ function sysbenchmark(;printsysinfo = true)
     prog.desc = "Compilation tests"
     insert!(LOAD_PATH, 1, @__DIR__); insert!(DEPOT_PATH, 1, mktempdir())
     Logging.disable_logging(Logging.Info)
-    t = @benchmark Base.compilecache(Base.PkgId("ExampleModule")); append!(df, DataFrame(cat="compilation", testname="compilecache", ms=(median(t).time / 1e6)-juliatime)); next!(prog)
+    pkg = Base.PkgId("ExampleModule")
+    t = @benchmark Base.compilecache($pkg); append!(df, DataFrame(cat="compilation", testname="compilecache", res=(median(t).time / 1e6))); next!(prog)
     Logging.disable_logging(Logging.Debug)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
