@@ -60,6 +60,7 @@ function compare(ref::DataFrame, test::DataFrame)
 		testrow = test[test.testname .== testname, :]
         refrow = ref[ref.testname .== testname, :]
         if testrow.cat[1] == "info"
+            factor = refrow.res[1] == testrow.res[1] ? "Equal" : "Not equal"
             push!(df, Dict(:cat=>testrow.cat[1], 
                 :testname=>testname, 
                 :ref_res=>refrow.res[1], 
@@ -80,7 +81,7 @@ end
 
 compareToRef() = compareToRef(sysbenchmark(printsysinfo = false))
 
-function compareToRef(test::DataFrame; refname="1-linux-i7-2.6GHz-GTX1650.txt")
+function compareToRef(test::DataFrame; refname="1-linux-i7-2.6GHz-GTX1650.csv")
     ref = readBenchmark(joinpath(dirname(@__DIR__), "ref", refname))
     return compare(ref, test)
 end
@@ -97,7 +98,8 @@ function sysbenchmark(;printsysinfo = true)
     prog = ProgressMeter.Progress(ntests) 
     prog.desc = "CPU tests"
     t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", res=median(t).time / 1e6)); next!(prog)
-    t = @benchmark a * b + c setup=(a=rand(),b=rand(),c=rand()); append!(df, DataFrame(cat="cpu", testname="FusedMulAdd", res=median(t).time / 1e6)); next!(prog)
+    a=rand(); b=rand() ;c=rand()
+    t = @benchmark $a * $b + $c ; append!(df, DataFrame(cat="cpu", testname="FusedMulAdd", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark sin(x) setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatSin", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark x .* x setup=(x=rand(10)); append!(df, DataFrame(cat="cpu", testname="VecMulBroad", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark x * x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="CPUMatMul", res=median(t).time / 1e6)); next!(prog)
@@ -142,6 +144,8 @@ function sysbenchmark(;printsysinfo = true)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
     finish!(prog)
+
+    @info "Printing of results may be truncated. To view the full results use `show(res, allrows=true)`"
     return df
 end
 ## CPU
