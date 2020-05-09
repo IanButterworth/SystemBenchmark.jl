@@ -47,7 +47,7 @@ end
 
 function saveBenchmark(path::String, res::DataFrame)
     open(path, "w") do io
-        CSV.write(io, res, append=true)
+        CSV.write(io, res)
     end
 end
 function readBenchmark(path::String)
@@ -60,12 +60,18 @@ function compare(ref::DataFrame, test::DataFrame)
 		testrow = test[test.testname .== testname, :]
         refrow = ref[ref.testname .== testname, :]
         if testrow.cat[1] == "info"
-            factor = refrow.res[1] == testrow.res[1] ? "Equal" : "Not equal"
+            if ismissing(testrow.res[1])
+                factor = ""
+            elseif refrow.res[1] !== testrow.res[1]
+                factor = "Not equal"
+            else
+                factor = "Equal"
+            end
             push!(df, Dict(:cat=>testrow.cat[1], 
                 :testname=>testname, 
                 :ref_res=>refrow.res[1], 
                 :test_res=>testrow.res[1], 
-                :factor=>""
+                :factor=>factor
                 ))
         else
             push!(df, Dict(:cat=>testrow.cat[1], 
@@ -138,7 +144,7 @@ function sysbenchmark(;printsysinfo = true)
     pkg = Base.PkgId("ExampleModule")
     t = @benchmark Base.compilecache($pkg); append!(df, DataFrame(cat="compilation", testname="compilecache", res=(median(t).time / 1e6))); next!(prog)
     path, cachefile, concrete_deps = compilecache_init(pkg)
-    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
+    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=GC.gc(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
     
     Logging.disable_logging(Logging.Debug)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
