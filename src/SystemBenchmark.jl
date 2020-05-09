@@ -125,6 +125,9 @@ function sysbenchmark(;printsysinfo = true)
     Logging.disable_logging(Logging.Info)
     pkg = Base.PkgId("ExampleModule")
     t = @benchmark Base.compilecache($pkg); append!(df, DataFrame(cat="compilation", testname="compilecache", res=(median(t).time / 1e6))); next!(prog)
+    path, cachefile, concrete_deps = compilecache_init(pkg)
+    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
+    
     Logging.disable_logging(Logging.Debug)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
@@ -157,4 +160,37 @@ function runjulia(e)
     juliabin = joinpath(Sys.BINDIR, Base.julia_exename())
     run(`$(joinpath(Sys.BINDIR, Base.julia_exename())) --project=$(dirname(@__DIR__)) --startup-file=no -e "$e"`)
 end
+
+## Compilation tests
+
+"""
+    compilecache_init(pkg)
+
+A stripped out version of `Base.compilecache(pkg)`` to prepare inputs for `Base.create_expr_cache` benchmark
+"""
+function compilecache_init(pkg)
+    path = Base.locate_package(pkg)
+    path === nothing && throw(ArgumentError("$pkg not found during precompilation"))
+    # decide where to put the resulting cache file
+    cachefile = Base.compilecache_path(pkg)
+    # prune the directory with cache files
+    if pkg.uuid !== nothing
+        cachepath = dirname(cachefile)
+        entrypath, entryfile = Base.cache_file_entry(pkg)
+        cachefiles = filter!(x -> startswith(x, entryfile * "_"), readdir(cachepath))
+        if length(cachefiles) >= Base.MAX_NUM_PRECOMPILE_FILES
+            idx = findmin(mtime.(joinpath.(cachepath, cachefiles)))[2]
+            rm(joinpath(cachepath, cachefiles[idx]))
+        end
+    end
+    # build up the list of modules that we want the precompile process to preserve
+    concrete_deps = copy(Base._concrete_dependencies)
+    for (key, mod) in Base.loaded_modules
+        if !(mod === Main || mod === Core || mod === Base)
+            push!(concrete_deps, key => Base.module_build_id(mod))
+        end
+    end
+    return path, cachefile, concrete_deps
+end
+
 end #module
