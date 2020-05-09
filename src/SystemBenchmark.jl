@@ -145,7 +145,6 @@ function sysbenchmark(;printsysinfo = true)
     t = @benchmark Base.compilecache($pkg); append!(df, DataFrame(cat="compilation", testname="compilecache", res=(median(t).time / 1e6))); next!(prog)
     path, cachefile, concrete_deps = compilecache_init(pkg)
     t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=GC.gc(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
-    
     Logging.disable_logging(Logging.Debug)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
