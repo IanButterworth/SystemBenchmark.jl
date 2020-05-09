@@ -29,7 +29,7 @@ function getSystemInfo()
     InteractiveUtils.versioninfo(buf, verbose=false)
     systeminfo = read(buf, String)
     
-    df = DataFrame(cat=String[], testname=String[], res=Union{String,Float64}[])
+    df = DataFrame(cat=String[], testname=String[], res=Any[])
     push!(df, ["info","SysBenchVer",string(pkgversion())])
     push!(df, ["info","JuliaVer",getInfoField(systeminfo, "Julia Version")])
     push!(df, ["info","OS",getInfoField(systeminfo, "OS:")])
@@ -40,7 +40,7 @@ function getSystemInfo()
     if HAS_GPU[] 
         push!(df, ["info","GPU",CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device())])
     else
-        push!(df, ["info","GPU",""])
+        push!(df, ["info","GPU",missing])
     end
     return df
 end
@@ -55,17 +55,15 @@ function readBenchmark(path::String)
 end
 
 function compare(ref::DataFrame, test::DataFrame)
-	df = DataFrame(cat=String[], testname=String[], ref_res=Union{String,Float64}[], test_res=Union{String,Float64}[], factor=Union{String,Float64}[])
+	df = DataFrame(cat=String[], testname=String[], ref_res=Any[], test_res=Any[], factor=Any[])
     for testname in unique(test.testname)
 		testrow = test[test.testname .== testname, :]
         refrow = ref[ref.testname .== testname, :]
         if testrow.cat[1] == "info"
-            if ismissing(testrow.res[1])
-                factor = ""
-            elseif refrow.res[1] !== testrow.res[1]
-                factor = "Not equal"
-            else
+            if (ismissing(testrow.res[1]) && ismissing(testrow.res[1])) || (refrow.res[1] == testrow.res[1])
                 factor = "Equal"
+            else
+                factor = "Not equal"
             end
             push!(df, Dict(:cat=>testrow.cat[1], 
                 :testname=>testname, 
@@ -74,11 +72,13 @@ function compare(ref::DataFrame, test::DataFrame)
                 :factor=>factor
                 ))
         else
+            testres = typeof(testrow.res[1]) == String ? parse(Float64,testrow.res[1]) : testrow.res[1]
+            refres = typeof(refrow.res[1]) == String ? parse(Float64,refrow.res[1]) : refrow.res[1]
             push!(df, Dict(:cat=>testrow.cat[1], 
                 :testname=>testname, 
                 :ref_res=>refrow.res[1], 
                 :test_res=>testrow.res[1], 
-                :factor=>testrow.res[1] ./ refrow.res[1]
+                :factor=>testres / refres
                 ))
         end
 	end

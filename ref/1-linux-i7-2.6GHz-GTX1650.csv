@@ -1,5 +1,5 @@
 cat,testname,res
-info,SysBenchVer,0.1.0
+info,SysBenchVer,0.2.0-dev
 info,JuliaVer,1.4.1
 info,OS,Linux (x86_64-pc-linux-gnu)
 info,CPU,Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
