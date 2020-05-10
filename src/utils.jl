@@ -1,11 +1,13 @@
 using Pkg
+using GitHub
+
 function pkgversion()
     projecttoml_filename = joinpath(dirname(dirname(@__FILE__)),"Project.toml")
     projecttoml_parsed = Pkg.TOML.parse(read(projecttoml_filename, String))
     return VersionNumber(projecttoml_parsed["version"])
 end
 
-function readPrintedDataFrame(str::String)
+function readprinteddataframe(str::String)
     lines = split(str, "\n")
     if occursin("DataFrame",str)
         start = findfirst(occursin.("DataFrame", lines))

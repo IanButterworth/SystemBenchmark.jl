@@ -11,7 +11,7 @@ using VideoIO
 
 include("utils.jl")
 
-export runbenchmark, compare, compareToRef, saveBenchmark, readBenchmark
+export runbenchmark, compare, comparetoref, savebenchmark, readbenchmark, getsubmittedbenchmarks
 
 const HAS_GPU = Ref{Bool}(false)
 
@@ -19,24 +19,24 @@ function __init__()
     HAS_GPU[] = CuArrays.functional()
 end
 
-function getInfoField(info::String, field::String)::String
+function getinfofield(info::String, field::String)::String
     value = split(info, field)[2]
     return string(strip(split(value,"\n")[1]))
 end
 
-function getSystemInfo()
+function getsysteminfo()
     buf = PipeBuffer()
     InteractiveUtils.versioninfo(buf, verbose=false)
     systeminfo = read(buf, String)
     
     df = DataFrame(cat=String[], testname=String[], res=Any[])
     push!(df, ["info","SysBenchVer",string(pkgversion())])
-    push!(df, ["info","JuliaVer",getInfoField(systeminfo, "Julia Version")])
-    push!(df, ["info","OS",getInfoField(systeminfo, "OS:")])
-    push!(df, ["info","CPU",getInfoField(systeminfo, "CPU:")])
-    push!(df, ["info","WORD_SIZE",getInfoField(systeminfo, "WORD_SIZE:")])
-    push!(df, ["info","LIBM",getInfoField(systeminfo, "LIBM:")])
-    push!(df, ["info","LLVM",getInfoField(systeminfo, "LLVM:")])
+    push!(df, ["info","JuliaVer",getinfofield(systeminfo, "Julia Version")])
+    push!(df, ["info","OS",getinfofield(systeminfo, "OS:")])
+    push!(df, ["info","CPU",getinfofield(systeminfo, "CPU:")])
+    push!(df, ["info","WORD_SIZE",getinfofield(systeminfo, "WORD_SIZE:")])
+    push!(df, ["info","LIBM",getinfofield(systeminfo, "LIBM:")])
+    push!(df, ["info","LLVM",getinfofield(systeminfo, "LLVM:")])
     if HAS_GPU[] 
         push!(df, ["info","GPU",CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device())])
     else
@@ -45,12 +45,12 @@ function getSystemInfo()
     return df
 end
 
-function saveBenchmark(path::String, res::DataFrame)
+function savebenchmark(path::String, res::DataFrame)
     open(path, "w") do io
         CSV.write(io, res)
     end
 end
-function readBenchmark(path::String)
+function readbenchmark(path::String)
     return DataFrame(CSV.File(path))
 end
 
@@ -85,10 +85,10 @@ function compare(ref::DataFrame, test::DataFrame)
 	return df
 end
 
-compareToRef() = compareToRef(runbenchmark(printsysinfo = false))
+comparetoref() = comparetoref(runbenchmark(printsysinfo = false))
 
-function compareToRef(test::DataFrame; refname="ref.txt")
-    ref = readBenchmark(joinpath(dirname(@__DIR__), "ref", refname))
+function comparetoref(test::DataFrame; refname="ref.txt")
+    ref = readbenchmark(joinpath(dirname(@__DIR__), "ref", refname))
     return compare(ref, test)
 end
 
@@ -100,7 +100,7 @@ function runbenchmark(;printsysinfo = true)
         @info "CuArrays.functional() == false. No usable GPU detected"
     end
 
-    df = getSystemInfo() #initialize DataFrame with system info 
+    df = getsysteminfo() #initialize DataFrame with system info 
     prog = ProgressMeter.Progress(ntests) 
     prog.desc = "CPU tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", res=median(t).time / 1e6)); next!(prog)

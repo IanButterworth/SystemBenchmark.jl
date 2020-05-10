@@ -188,6 +188,12 @@ git-tree-sha1 = "c63cb01e3b6f48ab39f1e35c31ba870650814a18"
 uuid = "0c68f7d7-f131-5f86-a1c3-88cf8149b2d7"
 version = "3.2.0"
 
+[[GitHub]]
+deps = ["Base64", "Dates", "HTTP", "JSON", "MbedTLS", "Sockets"]
+git-tree-sha1 = "bc8ded5984130076ca6fe6b752508effa1201a19"
+uuid = "bc5e4493-9b4d-5f90-b8aa-2b2bcaad7a26"
+version = "5.1.5"
+
 [[Glob]]
 git-tree-sha1 = "4df9f7e06108728ebf00a0a11edee4b29a482bb2"
 uuid = "c27321d9-0574-5035-807b-f59d2c89b15c"
@@ -198,6 +204,12 @@ deps = ["Colors", "LinearAlgebra", "NaNMath"]
 git-tree-sha1 = "45d684ead5b65c043ad46bd5be750d61c39d7ef8"
 uuid = "a2bd30eb-e257-5431-a919-1863eab51364"
 version = "1.0.2"
+
+[[HTTP]]
+deps = ["Base64", "Dates", "IniFile", "MbedTLS", "Sockets"]
+git-tree-sha1 = "fe31f4ff144392ad8176f5c7c03cca6ba320271c"
+uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+version = "0.8.14"
 
 [[IdentityRanges]]
 deps = ["OffsetArrays"]
@@ -216,6 +228,12 @@ deps = ["AxisAlgorithms", "ColorVectorSpace", "CoordinateTransformations", "Iden
 git-tree-sha1 = "34e3b7549af44043e37ba321334afa322ec63a9d"
 uuid = "02fcd773-0e25-5acc-982a-7f6622650795"
 version = "0.8.4"
+
+[[IniFile]]
+deps = ["Test"]
+git-tree-sha1 = "098e4d2c533924c921f9f9847274f2ad89e018b8"
+uuid = "83e8ac13-25f8-5344-8a64-a9f2b223428f"
+version = "0.5.0"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
@@ -278,6 +296,18 @@ version = "0.2.2"
 [[Markdown]]
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
+
+[[MbedTLS]]
+deps = ["Dates", "MbedTLS_jll", "Random", "Sockets"]
+git-tree-sha1 = "426a6978b03a97ceb7ead77775a1da066343ec6e"
+uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
+version = "1.0.2"
+
+[[MbedTLS_jll]]
+deps = ["Libdl", "Pkg"]
+git-tree-sha1 = "c83f5a1d038f034ad0549f9ee4d5fac3fb429e33"
+uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.16.0+2"
 
 [[Missings]]
 deps = ["DataAPI"]

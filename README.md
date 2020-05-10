@@ -40,11 +40,11 @@ julia> show(res, allrows=true)
 
 Compare benchmark to the default reference (a 2019 MSI Linux i7 Laptop with )
 ```
-julia> comp = compareToRef(res)
+julia> comp = comparetoref(res)
 ```
 or to run the benchmark and do the comparison in one move:
 ```
-julia> comp = compareToRef()
+julia> comp = comparetoref()
 [ Info: CuArrays.functional() == false. No usable GPU detected
 Compilation tests100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:01:58
 [ Info: Printing of results may be truncated. To view the full results use `show(res, allrows=true)`
@@ -82,7 +82,7 @@ Compilation tests100%|███████████████████�
 
 Save to disk (includes a system report)
 ```
-writeBenchmark(path::String, res::DataFrame)
+savebenchmark(path::String, res::DataFrame)
 ```
 
 Compare two benchmarks
