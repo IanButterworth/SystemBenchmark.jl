@@ -148,6 +148,10 @@ function sysbenchmark(;printsysinfo = true)
     Logging.disable_logging(Logging.Debug)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
+    # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue
+    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
+    
+
     finish!(prog)
 
     @info "Printing of results may be truncated. To view the full results use `show(res, allrows=true)`"
@@ -209,6 +213,11 @@ function compilecache_init(pkg)
         end
     end
     return path, cachefile, concrete_deps
+end
+
+function slowGC(t=0.1)
+    GC.gc()
+    sleep(t)
 end
 
 end #module
