@@ -7,6 +7,6 @@ using SystemBenchmark
     saveBenchmark(path, res)
     res2 = readBenchmark(path);
     comp = compareToRef(res);
-    show(comp, allrows=true)
+    show(comp, allrows=true, allcols=true)
     println("") #tidy test printing
 end
