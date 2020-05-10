@@ -27,22 +27,23 @@ function getsubmittedbenchmarks(repo::String="ianshmean/SystemBenchmark.jl",issu
     master_res = DataFrame(cat=["info","info"],testname=["user","datetime"],res=["ref","2020-05-10"])
     append!(master_res, ref)
     rename!(master_res, [:cat,:testname,:ref])
+    filter!(x->occursin(".txt", x.body) && occursin("https://github.com/$repo/files/", x.body), comments)
+    prog = Progress(length(comments), desc = "Downloading $(length(comments)) results... ")
     for comment in comments
-        if occursin(".txt", comment.body) && occursin("https://github.com/$repo/files/", comment.body)
-            resulturl =  string("https://github.com/$repo/files/", split(split(comment.body,"https://github.com/$repo/files/")[2],".txt")[1],".txt")
-            username = "@$(comment.user.login)"
-            datetime = comment.updated_at
-            file = download(resulturl)
-            res = readbenchmark(file)
-            if "test_res" in names(res)
-                res = DataFrame(cat=res.cat, testname=res.testname, res=res.test_res)
-            end
-            res_formatted = DataFrame(cat=["info","info"],testname=["user","datetime"],res=[username,datetime])
-            append!(res_formatted, res)
-            rename!(res_formatted, [:cat,:testname,Symbol("res_$i")])
-            master_res = DataFrames.innerjoin(master_res, res_formatted, on = [:cat,:testname])
-            i += 1
+        resulturl =  string("https://github.com/$repo/files/", split(split(comment.body,"https://github.com/$repo/files/")[2],".txt")[1],".txt")
+        username = "@$(comment.user.login)"
+        datetime = comment.updated_at
+        file = download(resulturl)
+        res = readbenchmark(file)
+        if "test_res" in names(res)
+            res = DataFrame(cat=res.cat, testname=res.testname, res=res.test_res)
         end
+        res_formatted = DataFrame(cat=["info","info"],testname=["user","datetime"],res=[username,datetime])
+        append!(res_formatted, res)
+        rename!(res_formatted, [:cat,:testname,Symbol("res_$i")])
+        master_res = DataFrames.innerjoin(master_res, res_formatted, on = [:cat,:testname])
+        i += 1
+        next!(prog)
     end
     return master_res
 end
