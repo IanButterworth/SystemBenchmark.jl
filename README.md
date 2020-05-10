@@ -1,5 +1,5 @@
 # SystemBenchmark.jl
- Julia package for benchmarking a system. Not yet released. Contributions very welcome, to arrive at a stable test set.
+ Julia package for benchmarking a system. Not yet released. Contributions very welcome, to help arrive at a stable test set.
 
 Run benchmark
 ```
@@ -89,3 +89,9 @@ Compare two benchmarks
 ```
 compare(ref::DataFrame, res::DataFrame)
 ```
+
+## Submitting Benchmarks
+
+It would be great to collect data across all the platforms being used.
+Please consider submitting results in this thread: [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8)
+

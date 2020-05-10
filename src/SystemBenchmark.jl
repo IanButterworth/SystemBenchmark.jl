@@ -87,7 +87,7 @@ end
 
 compareToRef() = compareToRef(runbenchmark(printsysinfo = false))
 
-function compareToRef(test::DataFrame; refname="1-linux-i7-2.6GHz-GTX1650.csv")
+function compareToRef(test::DataFrame; refname="ref.txt")
     ref = readBenchmark(joinpath(dirname(@__DIR__), "ref", refname))
     return compare(ref, test)
 end
