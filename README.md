@@ -59,7 +59,7 @@ Compilation tests100%|███████████████████�
 │ 5   │ info        │ WORD_SIZE         │ 64                                       │ 64                                       │ Equal     │
 │ 6   │ info        │ LIBM              │ libopenlibm                              │ libopenlibm                              │ Equal     │
 │ 7   │ info        │ LLVM              │ libLLVM-8.0.1 (ORCJIT, skylake)          │ libLLVM-8.0.1 (ORCJIT, skylake)          │ Equal     │
-│ 8   │ info        │ GPU               │ missing                                  │ missing                                  │ Equal     │
+│ 8   │ info        │ GPU               │ GeForce GTX 1650 with Max-Q Design       │ missing                                  │ Not equal │
 │ 9   │ cpu         │ FloatMul          │ 1.1339999999999999e-6                    │ 1.712e-6                                 │ 1.5097    │
 │ 10  │ cpu         │ FusedMulAdd       │ 1.6e-8                                   │ 3.8e-8                                   │ 2.375     │
 │ 11  │ cpu         │ FloatSin          │ 3.615e-6                                 │ 5.895e-6                                 │ 1.63071   │
