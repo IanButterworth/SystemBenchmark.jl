@@ -5,74 +5,78 @@ Run benchmark
 ```
 pkg> add https://github.com/ianshmean/SystemBenchmark.jl
 julia> using SystemBenchmark
-Julia> res = sysbenchmark()
-13×3 DataFrames.DataFrame
-│ Row │ cat     │ testname        │ ms          │
-│     │ String  │ String          │ Float64     │
-├─────┼─────────┼─────────────────┼─────────────┤
-│ 1   │ cpu     │ FloatMul        │ 1.61e-6     │
-│ 2   │ cpu     │ FloatSin        │ 5.681e-6    │
-│ 3   │ cpu     │ VecMulBroad     │ 4.72799e-5  │
-│ 4   │ cpu     │ CPUMatMul       │ 0.000379541 │
-│ 5   │ cpu     │ MatMulBroad     │ 0.000165929 │
-│ 6   │ cpu     │ 3DMulBroad      │ 0.00184215  │
-│ 7   │ cpu     │ FFMPEGH264Write │ 230.533     │
-│ 8   │ mem     │ DeepCopy        │ 0.000207828 │
-│ 9   │ diskio  │ TempdirWrite    │ 0.196437    │
-│ 10  │ diskio  │ TempdirRead     │ 0.0691485   │
-│ 11  │ loading │ JuliaLoad       │ 282.547     │
-│ 12  │ loading │ UsingCSV        │ 1772.47     │
-│ 13  │ loading │ UsingVideoIO    │ 4002.58     │
+julia> res = sysbenchmark();
+julia> show(res, allrows=true)
+25×3 DataFrame
+│ Row │ cat         │ testname          │ res                                      │
+│     │ String      │ String            │ Any                                      │
+├─────┼─────────────┼───────────────────┼──────────────────────────────────────────┤
+│ 1   │ info        │ SysBenchVer       │ 0.2.0                                    │
+│ 2   │ info        │ JuliaVer          │ 1.4.1                                    │
+│ 3   │ info        │ OS                │ macOS (x86_64-apple-darwin18.7.0)        │
+│ 4   │ info        │ CPU               │ Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz │
+│ 5   │ info        │ WORD_SIZE         │ 64                                       │
+│ 6   │ info        │ LIBM              │ libopenlibm                              │
+│ 7   │ info        │ LLVM              │ libLLVM-8.0.1 (ORCJIT, skylake)          │
+│ 8   │ info        │ GPU               │ missing                                  │
+│ 9   │ cpu         │ FloatMul          │ 1.766e-6                                 │
+│ 10  │ cpu         │ FusedMulAdd       │ 4.2e-8                                   │
+│ 11  │ cpu         │ FloatSin          │ 5.397e-6                                 │
+│ 12  │ cpu         │ VecMulBroad       │ 4.66298e-5                               │
+│ 13  │ cpu         │ CPUMatMul         │ 0.036044                                 │
+│ 14  │ cpu         │ MatMulBroad       │ 0.0190607                                │
+│ 15  │ cpu         │ 3DMulBroad        │ 0.00169715                               │
+│ 16  │ cpu         │ peakflops         │ 1.98568e11                               │
+│ 17  │ cpu         │ FFMPEGH264Write   │ 230.004                                  │
+│ 18  │ mem         │ DeepCopy          │ 0.000206386                              │
+│ 19  │ diskio      │ DiskWrite1KB      │ 0.142076                                 │
+│ 20  │ diskio      │ DiskWrite1MB      │ 0.686615                                 │
+│ 21  │ diskio      │ DiskRead1KB       │ 0.0691395                                │
+│ 22  │ diskio      │ DiskRead1MB       │ 0.527845                                 │
+│ 23  │ loading     │ JuliaLoad         │ 233.506                                  │
+│ 24  │ compilation │ compilecache      │ 373.706                                  │
+│ 25  │ compilation │ create_expr_cache │ 12.482                                   │
 ```
 
-Compare benchmark to the default reference (a 2019 MSI Linux Laptop)
+Compare benchmark to the default reference (a 2019 MSI Linux i7 Laptop with )
 ```
-julia> comparison_df = compareToRef()
+julia> comp = compareToRef(res)
 ```
-or
+or to run the benchmark and do the comparison in one move:
 ```
-julia> comparison_df = compareToRef(sysbenchmark())
-Reference system ----------------------
-Julia Version 1.4.1
-Commit 381693d3df* (2020-04-14 17:20 UTC)
-Platform Info:
-  OS: Linux (x86_64-pc-linux-gnu)
-  CPU: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-  WORD_SIZE: 64
-  LIBM: libopenlibm
-  LLVM: libLLVM-8.0.1 (ORCJIT, skylake)
-  GPU (used by CuArrays): GeForce GTX 1650 with Max-Q Design
-
-Test system ---------------------------
-Julia Version 1.4.1
-Commit 381693d3df* (2020-04-14 17:20 UTC)
-Platform Info:
-  OS: macOS (x86_64-apple-darwin18.7.0)
-  CPU: Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz
-  WORD_SIZE: 64
-  LIBM: libopenlibm
-  LLVM: libLLVM-8.0.1 (ORCJIT, skylake)
-Environment:
-  JULIA_EDITOR = "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
-  JULIA_NUM_THREADS = 6
-
-
-12×5 DataFrame
-│ Row │ cat         │ testname        │ ref_ms      │ test_ms     │ factor  │
-│     │ String      │ String          │ Float64     │ Float64     │ Float64 │
-├─────┼─────────────┼─────────────────┼─────────────┼─────────────┼─────────┤
-│ 1   │ cpu         │ FloatMul        │ 1.134e-6    │ 1.715e-6    │ 1.51235 │
-│ 2   │ cpu         │ FloatSin        │ 4.051e-6    │ 4.951e-6    │ 1.22217 │
-│ 3   │ cpu         │ VecMulBroad     │ 2.99025e-5  │ 3.92925e-5  │ 1.31402 │
-│ 4   │ cpu         │ CPUMatMul       │ 0.018874    │ 0.037066    │ 1.96387 │
-│ 5   │ cpu         │ MatMulBroad     │ 0.00413388  │ 0.0192804   │ 4.664   │
-│ 6   │ cpu         │ 3DMulBroad      │ 0.0010365   │ 0.0016829   │ 1.62364 │
-│ 7   │ cpu         │ FFMPEGH264Write │ 105.757     │ 230.524     │ 2.17976 │
-│ 8   │ mem         │ DeepCopy        │ 0.000177074 │ 0.000193347 │ 1.0919  │
-│ 9   │ diskio      │ TempdirWrite    │ 0.024308    │ 0.18231     │ 7.50002 │
-│ 10  │ diskio      │ TempdirRead     │ 0.0049865   │ 0.068471    │ 13.7313 │
-│ 11  │ loading     │ JuliaLoad       │ 91.921      │ 218.228     │ 2.37409 │
-│ 12  │ compilation │ compilecache    │ 118.46      │ 111.396     │ 0.94037 │
+julia> comp = compareToRef()
+[ Info: CuArrays.functional() == false. No usable GPU detected
+Compilation tests100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:01:58
+[ Info: Printing of results may be truncated. To view the full results use `show(res, allrows=true)`
+25×5 DataFrames.DataFrame
+│ Row │ cat         │ testname          │ ref_res                                  │ test_res                                 │ factor    │
+│     │ String      │ String            │ Any                                      │ Any                                      │ Any       │
+├─────┼─────────────┼───────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼───────────┤
+│ 1   │ info        │ SysBenchVer       │ 0.2.0                                    │ 0.2.0                                    │ Equal     │
+│ 2   │ info        │ JuliaVer          │ 1.4.1                                    │ 1.4.1                                    │ Equal     │
+│ 3   │ info        │ OS                │ Linux (x86_64-pc-linux-gnu)              │ macOS (x86_64-apple-darwin18.7.0)        │ Not equal │
+│ 4   │ info        │ CPU               │ Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz │ Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz │ Not equal │
+│ 5   │ info        │ WORD_SIZE         │ 64                                       │ 64                                       │ Equal     │
+│ 6   │ info        │ LIBM              │ libopenlibm                              │ libopenlibm                              │ Equal     │
+│ 7   │ info        │ LLVM              │ libLLVM-8.0.1 (ORCJIT, skylake)          │ libLLVM-8.0.1 (ORCJIT, skylake)          │ Equal     │
+│ 8   │ info        │ GPU               │ missing                                  │ missing                                  │ Equal     │
+│ 9   │ cpu         │ FloatMul          │ 1.1339999999999999e-6                    │ 1.712e-6                                 │ 1.5097    │
+│ 10  │ cpu         │ FusedMulAdd       │ 1.6e-8                                   │ 3.8e-8                                   │ 2.375     │
+│ 11  │ cpu         │ FloatSin          │ 3.615e-6                                 │ 5.895e-6                                 │ 1.63071   │
+│ 12  │ cpu         │ VecMulBroad       │ 2.9521608040201004e-5                    │ 5.32994e-5                               │ 1.80544   │
+│ 13  │ cpu         │ CPUMatMul         │ 0.0287155                                │ 0.0405345                                │ 1.41159   │
+│ 14  │ cpu         │ MatMulBroad       │ 0.0045513333333333334                    │ 0.039575                                 │ 8.69525   │
+│ 15  │ cpu         │ 3DMulBroad        │ 0.0011464000000000001                    │ 0.00461081                               │ 4.02199   │
+│ 16  │ cpu         │ peakflops         │ 1.4181657387608237e11                    │ 2.08713e11                               │ 1.47171   │
+│ 17  │ cpu         │ FFMPEGH264Write   │ 137.047713                               │ 247.21                                   │ 1.80383   │
+│ 18  │ mem         │ DeepCopy          │ 0.0001815                                │ 0.000220008                              │ 1.21216   │
+│ 19  │ diskio      │ DiskWrite1KB      │ 0.0427835                                │ 0.142784                                 │ 3.33736   │
+│ 20  │ diskio      │ DiskWrite1MB      │ 0.875754                                 │ 0.794882                                 │ 0.907654  │
+│ 21  │ diskio      │ DiskRead1KB       │ 0.0078745                                │ 0.073282                                 │ 9.30624   │
+│ 22  │ diskio      │ DiskRead1MB       │ 0.150918                                 │ 0.570236                                 │ 3.77845   │
+│ 23  │ loading     │ JuliaLoad         │ 100.8979295                              │ 252.624                                  │ 2.50376   │
+│ 24  │ compilation │ compilecache      │ 269.615246                               │ 456.467                                  │ 1.69303   │
+│ 25  │ compilation │ create_expr_cache │ 1.148646                                 │ 9.60561                                  │ 8.36255   │
 
 ```
 
@@ -81,7 +85,7 @@ Save to disk (includes a system report)
 writeBenchmark(path::String, res::DataFrame)
 ```
 
-Compare two benchmarks (no system reports)
+Compare two benchmarks
 ```
 compare(ref::DataFrame, res::DataFrame)
 ```
