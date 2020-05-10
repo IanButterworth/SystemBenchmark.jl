@@ -2,7 +2,7 @@ using Test
 using SystemBenchmark
 
 @testset "SystemBenchmark" begin
-    res = sysbenchmark();
+    res = runbenchmark();
     path, io = mktemp()
     saveBenchmark(path, res)
     res2 = readBenchmark(path);

@@ -5,7 +5,7 @@ Run benchmark
 ```
 pkg> add https://github.com/ianshmean/SystemBenchmark.jl
 julia> using SystemBenchmark
-julia> res = sysbenchmark();
+julia> res = runbenchmark();
 julia> show(res, allrows=true)
 25×3 DataFrame
 │ Row │ cat         │ testname          │ res                                      │

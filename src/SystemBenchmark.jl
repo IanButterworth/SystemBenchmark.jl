@@ -11,7 +11,7 @@ using VideoIO
 
 include("utils.jl")
 
-export sysbenchmark, compare, compareToRef, saveBenchmark, readBenchmark
+export runbenchmark, compare, compareToRef, saveBenchmark, readBenchmark
 
 const HAS_GPU = Ref{Bool}(false)
 
@@ -60,10 +60,10 @@ function compare(ref::DataFrame, test::DataFrame)
 		testrow = test[test.testname .== testname, :]
         refrow = ref[ref.testname .== testname, :]
         if testrow.cat[1] == "info"
-            if (ismissing(testrow.res[1]) && ismissing(testrow.res[1])) || (refrow.res[1] == testrow.res[1])
-                factor = "Equal"
+            if ismissing(refrow.res[1] != testrow.res[1]) || (refrow.res[1] != testrow.res[1])
+                factor = "Not Equal"
             else
-                factor = "Not equal"
+                factor = "Equal"
             end
             push!(df, Dict(:cat=>testrow.cat[1], 
                 :testname=>testname, 
@@ -85,14 +85,14 @@ function compare(ref::DataFrame, test::DataFrame)
 	return df
 end
 
-compareToRef() = compareToRef(sysbenchmark(printsysinfo = false))
+compareToRef() = compareToRef(runbenchmark(printsysinfo = false))
 
 function compareToRef(test::DataFrame; refname="1-linux-i7-2.6GHz-GTX1650.csv")
     ref = readBenchmark(joinpath(dirname(@__DIR__), "ref", refname))
     return compare(ref, test)
 end
 
-function sysbenchmark(;printsysinfo = true)
+function runbenchmark(;printsysinfo = true)
     ntests = 17
     if HAS_GPU[]
         ntests += 1
@@ -102,7 +102,7 @@ function sysbenchmark(;printsysinfo = true)
 
     df = getSystemInfo() #initialize DataFrame with system info 
     prog = ProgressMeter.Progress(ntests) 
-    prog.desc = "CPU tests"
+    prog.desc = "CPU tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", res=median(t).time / 1e6)); next!(prog)
     a=rand(); b=rand() ;c=rand()
     t = @benchmark $a * $b + $c ; append!(df, DataFrame(cat="cpu", testname="FusedMulAdd", res=median(t).time / 1e6)); next!(prog)
@@ -117,15 +117,15 @@ function sysbenchmark(;printsysinfo = true)
     isfile(joinpath(@__DIR__, "testvideo.mp4")) && rm(joinpath(@__DIR__, "testvideo.mp4"))
 
     if HAS_GPU[]
-        prog.desc = "GPU tests"
+        prog.desc = "GPU tests"; ProgressMeter.updateProgress!(prog)
         x=cu(rand(Float32,100,100))
         t = @benchmark $x * $x; append!(df, DataFrame(cat="gpu", testname="GPUMatMul", res=median(t).time / 1e6)); next!(prog)
     end
 
-    prog.desc = "Memory tests"
+    prog.desc = "Memory tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark deepcopy(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="mem", testname="DeepCopy", res=median(t).time / 1e6)); next!(prog)
     
-    prog.desc = "Disk IO tests"
+    prog.desc = "Disk IO tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1KB", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1MB", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1KB", res=median(t).time / 1e6)); next!(prog)
@@ -134,24 +134,22 @@ function sysbenchmark(;printsysinfo = true)
     isfile(joinpath(@__DIR__, "testwrite.dat")) && rm(joinpath(@__DIR__, "testwrite.dat"))
     
 
-    prog.desc = "Julia loading tests"
+    prog.desc = "Julia loading tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark runjulia("1+1"); append!(df, DataFrame(cat="loading", testname="JuliaLoad", res=median(t).time / 1e6)); next!(prog)
     juliatime = median(t).time / 1e6
 
-    prog.desc = "Compilation tests"
+    prog.desc = "Compilation tests"; ProgressMeter.updateProgress!(prog)
     insert!(LOAD_PATH, 1, @__DIR__); insert!(DEPOT_PATH, 1, mktempdir())
     Logging.disable_logging(Logging.Info)
     pkg = Base.PkgId("ExampleModule")
     t = @benchmark Base.compilecache($pkg); append!(df, DataFrame(cat="compilation", testname="compilecache", res=(median(t).time / 1e6))); next!(prog)
     path, cachefile, concrete_deps = compilecache_init(pkg)
-    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=GC.gc(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
     Logging.disable_logging(Logging.Debug)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
-    # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue
+    # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue, so slowGC() is used as a teardown to slow the process
     t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
     
-
     finish!(prog)
 
     @info "Printing of results may be truncated. To view the full results use `show(res, allrows=true)`"
