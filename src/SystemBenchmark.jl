@@ -157,12 +157,14 @@ function runbenchmark(;printsysinfo = true)
     @info "Printing of results may be truncated. To view the full results use `show(res, allrows=true, allcols=true)`"
     return df
 end
+
 ## CPU
 function writevideo(imgstack; delete::Bool=false, path = joinpath(@__DIR__, "testvideo.mp4"))
     VideoIO.encodevideo(path, imgstack, silent=true)
     delete && rm(path)
     return path
 end
+
 ## DiskIO
 function tempwrite(x; delete::Bool=false, path = joinpath(@__DIR__, "testwrite.dat"))
     open(path, "w") do io
@@ -177,25 +179,14 @@ function tempread(path)
     end
     return x
 end
+
 ## Julia Loading
 function runjulia(e)
     juliabin = joinpath(Sys.BINDIR, Base.julia_exename())
     run(`$(joinpath(Sys.BINDIR, Base.julia_exename())) --project=$(dirname(@__DIR__)) --startup-file=no -e "$e"`)
 end
 
-function runjuliabasic()
-    run(`$(Base.julia_cmd()) -O0 --startup-file=no --history-file=no --eval="1"`)
-end
-function output_ji(e)
-    tempout, io = mktemp()
-    run(`$(Base.julia_cmd()) -O0 
-        --output-ji $tempout --output-incremental=yes 
-        --startup-file=no --history-file=no --warn-overwrite=yes 
-        --eval "$e"`)
-end
-
 ## Compilation tests
-
 """
     compilecache_init(pkg)
 
@@ -225,10 +216,19 @@ function compilecache_init(pkg)
     end
     return path, cachefile, concrete_deps
 end
-
 function slowGC(t=0.1)
     GC.gc()
     sleep(t)
+end
+function runjuliabasic()
+    run(`$(Base.julia_cmd()) -O0 --startup-file=no --history-file=no --eval="1"`)
+end
+function output_ji(e)
+    tempout, io = mktemp()
+    run(`$(Base.julia_cmd()) -O0 
+        --output-ji $tempout --output-incremental=yes 
+        --startup-file=no --history-file=no --warn-overwrite=yes 
+        --eval "$e"`)
 end
 
 end #module
