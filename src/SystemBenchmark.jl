@@ -152,7 +152,7 @@ function runbenchmark(;printsysinfo = true)
     
     finish!(prog)
 
-    @info "Printing of results may be truncated. To view the full results use `show(res, allrows=true)`"
+    @info "Printing of results may be truncated. To view the full results use `show(res, allrows=true, allcols=true)`"
     return df
 end
 ## CPU
