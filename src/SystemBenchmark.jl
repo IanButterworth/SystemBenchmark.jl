@@ -93,7 +93,7 @@ function comparetoref(test::DataFrame; refname="ref.txt")
 end
 
 function runbenchmark(;printsysinfo = true)
-    ntests = 18
+    ntests = 19
     if HAS_GPU[]
         ntests += 1
     else
@@ -147,10 +147,11 @@ function runbenchmark(;printsysinfo = true)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
     # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue, so slowGC() is used as a teardown to slow the process
+    t = @benchmark success(io) setup=(io=Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid)) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
     t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
     
     t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
-    t = @benchmark output_ji("module Foo bar(n)=sum(map(x->rand(),n)) end"); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
+    t = @benchmark output_ji(); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
     
     finish!(prog)
 
@@ -223,12 +224,13 @@ end
 function runjuliabasic()
     run(`$(Base.julia_cmd()) -O0 --startup-file=no --history-file=no --eval="1"`)
 end
-function output_ji(e)
+function output_ji()
+    examplemod = joinpath(@__DIR__, "ExampleModule.jl")
     tempout, io = mktemp()
     run(`$(Base.julia_cmd()) -O0 
         --output-ji $tempout --output-incremental=yes 
         --startup-file=no --history-file=no --warn-overwrite=yes 
-        --eval "$e"`)
+        --eval "include(\"$examplemod\")"`)
 end
 
 end #module
