@@ -148,7 +148,9 @@ function runbenchmark(;printsysinfo = true)
 
     # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue, so slowGC() is used as a teardown to slow the process
     t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
-    t = @benchmark output_ji("module Foo bar(n)=sum(map(x->rand(),n)) end"); append!(df, DataFrame(cat="compilation", testname="output-ji", res=(median(t).time / 1e6))); next!(prog)
+    
+    t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
+    t = @benchmark output_ji("module Foo bar(n)=sum(map(x->rand(),n)) end"); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
     
     finish!(prog)
 
@@ -181,6 +183,9 @@ function runjulia(e)
     run(`$(joinpath(Sys.BINDIR, Base.julia_exename())) --project=$(dirname(@__DIR__)) --startup-file=no -e "$e"`)
 end
 
+function runjuliabasic()
+    run(`$(Base.julia_cmd()) -O0 --startup-file=no --history-file=no --eval="1"`)
+end
 function output_ji(e)
     tempout, io = mktemp()
     run(`$(Base.julia_cmd()) -O0 
