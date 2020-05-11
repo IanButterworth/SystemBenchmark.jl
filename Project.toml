@@ -1,6 +1,6 @@
 name = "SystemBenchmark"
 uuid = "30cdaa97-48ad-4abc-9688-3a7175b8083d"
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
