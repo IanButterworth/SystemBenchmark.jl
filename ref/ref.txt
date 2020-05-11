@@ -1,5 +1,5 @@
 cat,testname,res
-info,SysBenchVer,0.2.0
+info,SysBenchVer,0.2.1
 info,JuliaVer,1.4.1
 info,OS,Linux (x86_64-pc-linux-gnu)
 info,CPU,Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
@@ -7,21 +7,23 @@ info,WORD_SIZE,64
 info,LIBM,libopenlibm
 info,LLVM,"libLLVM-8.0.1 (ORCJIT, skylake)"
 info,GPU,GeForce GTX 1650 with Max-Q Design
-cpu,FloatMul,1.159e-6
-cpu,FusedMulAdd,1.7e-8
-cpu,FloatSin,4.0540000000000005e-6
-cpu,VecMulBroad,2.9813065326633165e-5
-cpu,CPUMatMul,0.018634
-cpu,MatMulBroad,0.0043675
-cpu,3DMulBroad,0.0010295999999999999
-cpu,peakflops,1.7255522888933444e11
-cpu,FFMPEGH264Write,107.505687
-gpu,GPUMatMul,0.005322875
-mem,DeepCopy,0.00018644988864142538
-diskio,DiskWrite1KB,0.0318615
-diskio,DiskWrite1MB,0.928177
-diskio,DiskRead1KB,0.006769
-diskio,DiskRead1MB,0.14344
-loading,JuliaLoad,91.214667
-compilation,compilecache,207.988182
-compilation,create_expr_cache,0.84871
+cpu,FloatMul,1.133e-6
+cpu,FusedMulAdd,1.1339999999999999e-6
+cpu,FloatSin,4.051e-6
+cpu,VecMulBroad,2.9825125628140703e-5
+cpu,CPUMatMul,0.018817
+cpu,MatMulBroad,0.0042099
+cpu,3DMulBroad,0.0010415
+cpu,peakflops,1.7780621689435773e11
+cpu,FFMPEGH264Write,107.928719
+gpu,GPUMatMul,0.0052633125
+mem,DeepCopy,0.000186327721661055
+diskio,DiskWrite1KB,0.0319535
+diskio,DiskWrite1MB,0.848287
+diskio,DiskRead1KB,0.00654375
+diskio,DiskRead1MB,0.144209
+loading,JuliaLoad,91.776181
+compilation,compilecache,208.8682705
+compilation,success_create_expr_cache,236.5010175
+compilation,create_expr_cache,1.129475
+compilation,output-ji-substart,32.713674999999995
