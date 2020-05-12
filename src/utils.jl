@@ -44,7 +44,7 @@ function getsubmittedbenchmarks(repo::String="ianshmean/SystemBenchmark.jl",issu
             res_formatted = DataFrame(cat=["info","info"],testname=["user","datetime"],res=[username,datetime])
             append!(res_formatted, res)
             rename!(res_formatted, [:cat,:testname,Symbol("res_$i")])
-            master_res = DataFrames.innerjoin(master_res, res_formatted, on = [:cat,:testname])
+            master_res = DataFrames.outerjoin(master_res, res_formatted, on = [:cat,:testname])
             i += 1
             next!(prog)
         end
