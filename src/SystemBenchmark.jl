@@ -110,7 +110,7 @@ function runbenchmark(;printsysinfo = true)
     t = @benchmark x * x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="CPUMatMul", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark x .* x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="MatMulBroad", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark x .* x setup=(x=rand(10,10,10)); append!(df, DataFrame(cat="cpu", testname="3DMulBroad", res=median(t).time / 1e6)); next!(prog)
-    append!(df, DataFrame(cat="cpu", testname="peakflops", res=LinearAlgebra.peakflops())); next!(prog)
+    append!(df, DataFrame(cat="cpu", testname="peakflops", res=maximum(LinearAlgebra.peakflops() for _ in 1:10))); next!(prog)
    
     t = @benchmark writevideo(imgstack) setup=(imgstack=map(x->rand(UInt8,100,100), 1:100)); append!(df, DataFrame(cat="cpu", testname="FFMPEGH264Write", res=median(t).time / 1e6)); next!(prog)
     isfile(joinpath(@__DIR__, "testvideo.mp4")) && rm(joinpath(@__DIR__, "testvideo.mp4"))
