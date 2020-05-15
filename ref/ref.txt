@@ -1,29 +1,34 @@
-cat,testname,res
-info,SysBenchVer,0.2.1
-info,JuliaVer,1.4.1
-info,OS,Linux (x86_64-pc-linux-gnu)
-info,CPU,Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-info,WORD_SIZE,64
-info,LIBM,libopenlibm
-info,LLVM,"libLLVM-8.0.1 (ORCJIT, skylake)"
-info,GPU,GeForce GTX 1650 with Max-Q Design
-cpu,FloatMul,1.133e-6
-cpu,FusedMulAdd,1.1339999999999999e-6
-cpu,FloatSin,4.051e-6
-cpu,VecMulBroad,2.9825125628140703e-5
-cpu,CPUMatMul,0.018817
-cpu,MatMulBroad,0.0042099
-cpu,3DMulBroad,0.0010415
-cpu,peakflops,1.7780621689435773e11
-cpu,FFMPEGH264Write,107.928719
-gpu,GPUMatMul,0.0052633125
-mem,DeepCopy,0.000186327721661055
-diskio,DiskWrite1KB,0.0319535
-diskio,DiskWrite1MB,0.848287
-diskio,DiskRead1KB,0.00654375
-diskio,DiskRead1MB,0.144209
-loading,JuliaLoad,91.776181
-compilation,compilecache,208.8682705
-compilation,success_create_expr_cache,236.5010175
-compilation,create_expr_cache,1.129475
-compilation,output-ji-substart,32.713674999999995
+cat,testname,units,res
+info,SysBenchVer,,0.3.0
+info,JuliaVer,,1.4.1
+info,OS,,Linux (x86_64-pc-linux-gnu)
+info,CPU,,Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+info,WORD_SIZE,,64
+info,LIBM,,libopenlibm
+info,LLVM,,"libLLVM-8.0.1 (ORCJIT, skylake)"
+info,GPU,,GeForce GTX 1650 with Max-Q Design
+cpu,FloatMul,ms,1.1339999999999999e-6
+cpu,FusedMulAdd,ms,1.1339999999999999e-6
+cpu,FloatSin,ms,4.051e-6
+cpu,VecMulBroad,ms,2.9823115577889445e-5
+cpu,CPUMatMul,ms,0.018683
+cpu,MatMulBroad,ms,0.0042223
+cpu,3DMulBroad,ms,0.0010529
+cpu,peakflops,flops,1.8061545733047305e11
+cpu,FFMPEGH264Write,ms,107.751337
+gpu,GPUMatMul,ms,0.005373875
+mem,DeepCopy,ms,0.00018790257558790594
+mem,Bandwidth10kB,MiB/s,104871.77985698299
+mem,Bandwidth100kB,MiB/s,58579.50346475738
+mem,Bandwidth1MB,MiB/s,33439.963407070725
+mem,Bandwidth10MB,MiB/s,5551.476774539766
+mem,Bandwidth100MB,MiB/s,6910.9558841033295
+diskio,DiskWrite1KB,ms,0.031895
+diskio,DiskWrite1MB,ms,0.920052
+diskio,DiskRead1KB,ms,0.006683666666666667
+diskio,DiskRead1MB,ms,0.143755
+loading,JuliaLoad,ms,91.08045
+compilation,compilecache,ms,208.532099
+compilation,success_create_expr_cache,ms,235.4855485
+compilation,create_expr_cache,ms,0.894126
+compilation,output-ji-substart,ms,32.639706000000004
