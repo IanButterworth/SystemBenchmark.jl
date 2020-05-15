@@ -29,18 +29,18 @@ function getsysteminfo()
     InteractiveUtils.versioninfo(buf, verbose=false)
     systeminfo = read(buf, String)
     
-    df = DataFrame(cat=String[], testname=String[], res=Any[])
-    push!(df, ["info","SysBenchVer",string(pkgversion())])
-    push!(df, ["info","JuliaVer",getinfofield(systeminfo, "Julia Version")])
-    push!(df, ["info","OS",getinfofield(systeminfo, "OS:")])
-    push!(df, ["info","CPU",getinfofield(systeminfo, "CPU:")])
-    push!(df, ["info","WORD_SIZE",getinfofield(systeminfo, "WORD_SIZE:")])
-    push!(df, ["info","LIBM",getinfofield(systeminfo, "LIBM:")])
-    push!(df, ["info","LLVM",getinfofield(systeminfo, "LLVM:")])
+    df = DataFrame(cat=String[], testname=String[], units=String[], res=Any[])
+    push!(df, ["info","SysBenchVer","",string(pkgversion())])
+    push!(df, ["info","JuliaVer","",getinfofield(systeminfo, "Julia Version")])
+    push!(df, ["info","OS","",getinfofield(systeminfo, "OS:")])
+    push!(df, ["info","CPU","",getinfofield(systeminfo, "CPU:")])
+    push!(df, ["info","WORD_SIZE","",getinfofield(systeminfo, "WORD_SIZE:")])
+    push!(df, ["info","LIBM","",getinfofield(systeminfo, "LIBM:")])
+    push!(df, ["info","LLVM","",getinfofield(systeminfo, "LLVM:")])
     if HAS_GPU[] 
-        push!(df, ["info","GPU",CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device())])
+        push!(df, ["info","GPU","",CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device())])
     else
-        push!(df, ["info","GPU",missing])
+        push!(df, ["info","GPU","",missing])
     end
     return df
 end
@@ -55,9 +55,10 @@ function readbenchmark(path::String)
 end
 
 function compare(ref::DataFrame, test::DataFrame)
-	df = DataFrame(cat=String[], testname=String[], ref_res=Any[], test_res=Any[], factor=Any[])
+	df = DataFrame(cat=String[], testname=String[], units=String[], ref_res=Any[], test_res=Any[], factor=Any[])
     for testname in unique(test.testname)
 		testrow = test[test.testname .== testname, :]
+		!in(testname, unique(ref.testname)) && continue #test missing from reference benchmark
         refrow = ref[ref.testname .== testname, :]
         if testrow.cat[1] == "info"
             if ismissing(refrow.res[1] != testrow.res[1]) || (refrow.res[1] != testrow.res[1])
@@ -67,6 +68,7 @@ function compare(ref::DataFrame, test::DataFrame)
             end
             push!(df, Dict(:cat=>testrow.cat[1], 
                 :testname=>testname, 
+				:units=>testrow.units[1], 
                 :ref_res=>refrow.res[1], 
                 :test_res=>testrow.res[1], 
                 :factor=>factor
@@ -76,6 +78,7 @@ function compare(ref::DataFrame, test::DataFrame)
             refres = typeof(refrow.res[1]) == String ? parse(Float64,refrow.res[1]) : refrow.res[1]
             push!(df, Dict(:cat=>testrow.cat[1], 
                 :testname=>testname, 
+				:units=>testrow.units[1],
                 :ref_res=>refrow.res[1], 
                 :test_res=>testrow.res[1], 
                 :factor=>testres / refres
@@ -103,59 +106,62 @@ function runbenchmark(;printsysinfo = true)
     df = getsysteminfo() #initialize DataFrame with system info 
     prog = ProgressMeter.Progress(ntests) 
     prog.desc = "CPU tests"; ProgressMeter.updateProgress!(prog)
-    t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", res=median(t).time / 1e6)); next!(prog)
-    t = @benchmark a * b + c setup=(a=rand(); b=rand(); c=rand()); append!(df, DataFrame(cat="cpu", testname="FusedMulAdd", res=median(t).time / 1e6)); next!(prog)
-    t = @benchmark sin(x) setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatSin", res=median(t).time / 1e6)); next!(prog)
-    t = @benchmark x .* x setup=(x=rand(10)); append!(df, DataFrame(cat="cpu", testname="VecMulBroad", res=median(t).time / 1e6)); next!(prog)
-    t = @benchmark x * x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="CPUMatMul", res=median(t).time / 1e6)); next!(prog)
-    t = @benchmark x .* x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="MatMulBroad", res=median(t).time / 1e6)); next!(prog)
-    t = @benchmark x .* x setup=(x=rand(10,10,10)); append!(df, DataFrame(cat="cpu", testname="3DMulBroad", res=median(t).time / 1e6)); next!(prog)
-    append!(df, DataFrame(cat="cpu", testname="peakflops", res=LinearAlgebra.peakflops())); next!(prog)
+    t = @benchmark x * x setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatMul", units="ms", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark a * b + c setup=(a=rand(); b=rand(); c=rand()); append!(df, DataFrame(cat="cpu", testname="FusedMulAdd", units="ms", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark sin(x) setup=(x=rand()); append!(df, DataFrame(cat="cpu", testname="FloatSin", units="ms", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark x .* x setup=(x=rand(10)); append!(df, DataFrame(cat="cpu", testname="VecMulBroad", units="ms", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark x * x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="CPUMatMul", units="ms", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark x .* x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="MatMulBroad", units="ms", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark x .* x setup=(x=rand(10,10,10)); append!(df, DataFrame(cat="cpu", testname="3DMulBroad", units="ms", res=median(t).time / 1e6)); next!(prog)
+    
+	append!(df, DataFrame(cat="cpu", testname="peakflops", units="flops", res=LinearAlgebra.peakflops())); next!(prog)
    
-    t = @benchmark writevideo(imgstack) setup=(imgstack=map(x->rand(UInt8,100,100), 1:100)); append!(df, DataFrame(cat="cpu", testname="FFMPEGH264Write", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark writevideo(imgstack) setup=(imgstack=map(x->rand(UInt8,100,100), 1:100)); append!(df, DataFrame(cat="cpu", testname="FFMPEGH264Write", units="ms", res=median(t).time / 1e6)); next!(prog)
     isfile(joinpath(@__DIR__, "testvideo.mp4")) && rm(joinpath(@__DIR__, "testvideo.mp4"))
 
     if HAS_GPU[]
         prog.desc = "GPU tests"; ProgressMeter.updateProgress!(prog)
         x=cu(rand(Float32,100,100))
-        t = @benchmark $x * $x; append!(df, DataFrame(cat="gpu", testname="GPUMatMul", res=median(t).time / 1e6)); next!(prog)
+        t = @benchmark $x * $x; append!(df, DataFrame(cat="gpu", testname="GPUMatMul", units="ms", res=median(t).time / 1e6)); next!(prog)
     end
 
     prog.desc = "Memory tests"; ProgressMeter.updateProgress!(prog)
-    t = @benchmark deepcopy(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="mem", testname="DeepCopy", res=median(t).time / 1e6)); next!(prog)
-	bandwidths = membandwidthbenchmark()
-	append!(df, DataFrame(cat="mem", testname="MeanBandwidthMiBs", res=mean(bandwidths))); 
-	append!(df, DataFrame(cat="mem", testname="MaxBandwidthMiBs", res=maximum(bandwidths))); 
+    t = @benchmark deepcopy(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="mem", testname="DeepCopy", units="ms", res=median(t).time / 1e6)); next!(prog)
+	bandwidths = membandwidthbenchmark(bytes_steps = [100_000, 1_000_000, 10_000_000, 100_000_000])
+	append!(df, DataFrame(cat="mem", testname="Bandwidth100kB", units="MiBs", res=bandwidths[1])); 
+	append!(df, DataFrame(cat="mem", testname="Bandwidth1MB", units="MiBs", res=bandwidths[2])); 
+	append!(df, DataFrame(cat="mem", testname="Bandwidth10MB", units="MiBs", res=bandwidths[3])); 
+	append!(df, DataFrame(cat="mem", testname="Bandwidth100MB", units="MiBs", res=bandwidths[4])); 
 	next!(prog)
 	
     prog.desc = "Disk IO tests"; ProgressMeter.updateProgress!(prog)
-    t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1KB", res=median(t).time / 1e6)); next!(prog)
-    t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1MB", res=median(t).time / 1e6)); next!(prog)
-    t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1KB", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1KB", units="ms", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1MB", units="ms", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1KB", units="ms", res=median(t).time / 1e6)); next!(prog)
     isfile(joinpath(@__DIR__, "testwrite.dat")) && rm(joinpath(@__DIR__, "testwrite.dat"))
-    t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1MB", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1MB", units="ms", res=median(t).time / 1e6)); next!(prog)
     isfile(joinpath(@__DIR__, "testwrite.dat")) && rm(joinpath(@__DIR__, "testwrite.dat"))
     
 
     prog.desc = "Julia loading tests"; ProgressMeter.updateProgress!(prog)
-    t = @benchmark runjulia("1+1"); append!(df, DataFrame(cat="loading", testname="JuliaLoad", res=median(t).time / 1e6)); next!(prog)
+    t = @benchmark runjulia("1+1"); append!(df, DataFrame(cat="loading", testname="JuliaLoad", units="ms", res=median(t).time / 1e6)); next!(prog)
     juliatime = median(t).time / 1e6
 
     prog.desc = "Compilation tests"; ProgressMeter.updateProgress!(prog)
     insert!(LOAD_PATH, 1, @__DIR__); insert!(DEPOT_PATH, 1, mktempdir())
     Logging.disable_logging(Logging.Info)
     pkg = Base.PkgId("ExampleModule")
-    t = @benchmark Base.compilecache($pkg); append!(df, DataFrame(cat="compilation", testname="compilecache", res=(median(t).time / 1e6))); next!(prog)
+    t = @benchmark Base.compilecache($pkg); append!(df, DataFrame(cat="compilation", testname="compilecache", units="ms", res=(median(t).time / 1e6))); next!(prog)
     path, cachefile, concrete_deps = compilecache_init(pkg)
     Logging.disable_logging(Logging.Debug)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
     # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue, so slowGC() is used as a teardown to slow the process
-    t = @benchmark success(io) setup=(io=Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid)) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
-    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", res=(median(t).time / 1e6))); next!(prog)
+    t = @benchmark success(io) setup=(io=Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid)) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
+    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
     
     t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
-    t = @benchmark output_ji(); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
+    t = @benchmark output_ji(); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
     
     finish!(prog)
 
@@ -191,18 +197,16 @@ end
     membandwidthbenchmark() => bandwidths_MiB_s
     
 Run memory bandwidth benchmark, testing deepcopying on arrays of size
-`bytes_steps` which defaults to 10KB through 1 GB
+`bytes_steps` which defaults to orders of magnitude from 100kB to 100 MB
 """
-function membandwidthbenchmark(;bytes_steps = 10 .^ (4:9))
+function membandwidthbenchmark(;bytes_steps = 10 .^ (5:8))
     bandwidths_MiB_s = Float64[]
-    GC.enable(false)
     for bytes in bytes_steps    
-        t = @benchmark y = deepcopy(x) setup=(x=rand(UInt8,$bytes)) teardown=begin GC.enable(true); GC.gc(); GC.enable(false); end 
+        t = @benchmark copy!(y, x) setup=(x=rand(UInt8,$bytes);y=rand(UInt8,$bytes))
         time_s = minimum(t).time / 1e9
         push!(bandwidths_MiB_s, (bytes / time_s)  / (1024 * 1024))
         @debug "$(bytes/1000000) MB test: $(last(bandwidths_MiB_s)) MiB/s"
     end
-    GC.enable(true)
     @debug "Mean bandwidth: $(round(mean(bandwidths_MiB_s),digits=2)) MiB/s"
     @debug "Max bandwidth: $(round(maximum(bandwidths_MiB_s),digits=2)) MiB/s"
     return bandwidths_MiB_s
