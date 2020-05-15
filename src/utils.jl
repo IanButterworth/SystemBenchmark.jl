@@ -24,9 +24,9 @@ function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", is
     results = DataFrame[]
     i = 1
     ref = readbenchmark(joinpath(dirname(@__DIR__), "ref", refname))
-    master_res = DataFrame(cat=["info","info"],testname=["user","datetime"],res=["ref","2020-05-10"])
+    master_res = DataFrame(cat=["info","info"],testname=["user","datetime"],units=Union{String,Missing}[missing,missing],res=["ref","2020-05-10"])
     append!(master_res, ref)
-    rename!(master_res, [:cat,:testname,:ref])
+    rename!(master_res, [:cat,:testname,:units,:ref])
     files = map(comment->map(x->string(x.match), collect(eachmatch(r"https:\/\/github\.com\/.*\.txt",comment.body, overlap=false))),comments)
     nresults = sum(length.(files))
     filter!(x->occursin(".txt", x.body) && occursin("https://github.com/$repo/files/", x.body), comments)
@@ -41,9 +41,16 @@ function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", is
             if "test_res" in names(res)
                 res = DataFrame(cat=res.cat, testname=res.testname, res=res.test_res)
             end
-            res_formatted = DataFrame(cat=["info","info"],testname=["user","datetime"],res=[username,datetime])
-            append!(res_formatted, res)
-            rename!(res_formatted, [:cat,:testname,Symbol("res_$i")])
+            if ("units" in names(res))
+                res_formatted = DataFrame(cat=["info","info"],testname=["user","datetime"],units=Union{String,Missing}[missing,missing],res=[username,datetime])
+                append!(res_formatted, res)
+                rename!(res_formatted, [:cat,:testname,:units,Symbol("res_$i")])
+            else
+                res_formatted = DataFrame(cat=["info","info"],testname=["user","datetime"],res=[username,datetime])
+                append!(res_formatted, res)
+                rename!(res_formatted, [:cat,:testname,Symbol("res_$i")])
+            end
+            
             master_res = DataFrames.outerjoin(master_res, res_formatted, on = [:cat,:testname])
             i += 1
             next!(prog)
@@ -56,7 +63,7 @@ function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", is
     end
 end
 function restranspose(res::DataFrame)
-    resfilt = res[:,3:end]
+    resfilt = res[:,4:end]
     rows =  collect.(eachrow(resfilt))
     i = 1
     for c in res.cat

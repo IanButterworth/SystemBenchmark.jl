@@ -5,7 +5,7 @@ using Plots
 using Statistics
 gr()
 
-function plotreport(df,scale=2.0)
+function plotreport(df, figurepath; scale=2.0)
     
     platforms = ["Windows", "macOS", "Linux (x86", "Linux (aarch"]
     colors = [:blue,:orange,:green,:purple]
@@ -77,9 +77,9 @@ function plotreport(df,scale=2.0)
 
     plot(p1,p2,p3,p4,dpi=300,size=(400*scale,300*scale))
 
-    savefig("summary_cropped.png")
+    savefig(figurepath)
 end
 
 df = getsubmittedbenchmarks()
 savebenchmark(joinpath(@__DIR__,"all.csv"), df)
-report(df)
+plotreport(df, joinpath(@__DIR__,"summary_cropped.png"))
