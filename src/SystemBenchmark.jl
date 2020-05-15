@@ -58,6 +58,7 @@ function compare(ref::DataFrame, test::DataFrame)
 	df = DataFrame(cat=String[], testname=String[], ref_res=Any[], test_res=Any[], factor=Any[])
     for testname in unique(test.testname)
 		testrow = test[test.testname .== testname, :]
+	!in(testname, unique(ref.testname)) && continue #test missing from reference benchmark
         refrow = ref[ref.testname .== testname, :]
         if testrow.cat[1] == "info"
             if ismissing(refrow.res[1] != testrow.res[1]) || (refrow.res[1] != testrow.res[1])
