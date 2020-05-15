@@ -93,7 +93,7 @@ function comparetoref(test::DataFrame; refname="ref.txt")
 end
 
 function runbenchmark(;printsysinfo = true)
-    ntests = 19
+    ntests = 21
     if HAS_GPU[]
         ntests += 1
     else
@@ -123,6 +123,8 @@ function runbenchmark(;printsysinfo = true)
 
     prog.desc = "Memory tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark deepcopy(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="mem", testname="DeepCopy", res=median(t).time / 1e6)); next!(prog)
+	t = @benchmark deepcopy(x) setup=(x=rand(UInt8,1000000)); append!(df, DataFrame(cat="mem", testname="DeepCopy1MB", res=median(t).time / 1e6)); next!(prog)
+	t = @benchmark deepcopy(x) setup=(x=rand(UInt8,10000000)); append!(df, DataFrame(cat="mem", testname="DeepCopy10MB", res=median(t).time / 1e6)); next!(prog)
     
     prog.desc = "Disk IO tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1KB", res=median(t).time / 1e6)); next!(prog)
