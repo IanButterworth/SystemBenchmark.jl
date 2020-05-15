@@ -123,9 +123,11 @@ function runbenchmark(;printsysinfo = true)
 
     prog.desc = "Memory tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark deepcopy(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="mem", testname="DeepCopy", res=median(t).time / 1e6)); next!(prog)
-	t = @benchmark deepcopy(x) setup=(x=rand(UInt8,1000000)); append!(df, DataFrame(cat="mem", testname="DeepCopy1MB", res=median(t).time / 1e6)); next!(prog)
-	t = @benchmark deepcopy(x) setup=(x=rand(UInt8,10000000)); append!(df, DataFrame(cat="mem", testname="DeepCopy10MB", res=median(t).time / 1e6)); next!(prog)
-    
+	bandwidths = membandwidthbenchmark()
+	append!(df, DataFrame(cat="mem", testname="MeanBandwidthMiBs", res=mean(bandwidths))); 
+	append!(df, DataFrame(cat="mem", testname="MaxBandwidthMiBs", res=maximum(bandwidths))); 
+	next!(prog)
+	
     prog.desc = "Disk IO tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1KB", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1MB", res=median(t).time / 1e6)); next!(prog)
@@ -181,6 +183,29 @@ function tempread(path)
         read(io)
     end
     return x
+end
+
+## Memory bandwidth
+
+"""
+    membandwidthbenchmark() => bandwidths_MiB_s
+    
+Run memory bandwidth benchmark, testing deepcopying on arrays of size
+`bytes_steps` which defaults to 10KB through 1 GB
+"""
+function membandwidthbenchmark(;bytes_steps = 10 .^ (4:9))
+    bandwidths_MiB_s = Float64[]
+    GC.enable(false)
+    for bytes in bytes_steps    
+        t = @benchmark y = deepcopy(x) setup=(x=rand(UInt8,$bytes)) teardown=begin GC.enable(true); GC.gc(); GC.enable(false); end 
+        time_s = minimum(t).time / 1e9
+        push!(bandwidths_MiB_s, (bytes / time_s)  / (1024 * 1024))
+        @debug "$(bytes/1000000) MB test: $(last(bandwidths_MiB_s)) MiB/s"
+    end
+    GC.enable(true)
+    @debug "Mean bandwidth: $(round(mean(bandwidths_MiB_s),digits=2)) MiB/s"
+    @debug "Max bandwidth: $(round(maximum(bandwidths_MiB_s),digits=2)) MiB/s"
+    return bandwidths_MiB_s
 end
 
 ## Julia Loading
