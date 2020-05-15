@@ -128,11 +128,11 @@ function runbenchmark(;printsysinfo = true)
     prog.desc = "Memory tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark deepcopy(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="mem", testname="DeepCopy", units="ms", res=median(t).time / 1e6)); next!(prog)
 	bandwidths = membandwidthbenchmark(bytes_steps = [10_000, 100_000, 1_000_000, 10_000_000, 100_000_000])
-	append!(df, DataFrame(cat="mem", testname="Bandwidth10kB", units="MiBs", res=bandwidths[1]));
-	append!(df, DataFrame(cat="mem", testname="Bandwidth100kB", units="MiBs", res=bandwidths[2])); 
-	append!(df, DataFrame(cat="mem", testname="Bandwidth1MB", units="MiBs", res=bandwidths[3])); 
-	append!(df, DataFrame(cat="mem", testname="Bandwidth10MB", units="MiBs", res=bandwidths[4])); 
-	append!(df, DataFrame(cat="mem", testname="Bandwidth100MB", units="MiBs", res=bandwidths[5])); 
+	append!(df, DataFrame(cat="mem", testname="Bandwidth10kB", units="MiB/s", res=bandwidths[1]));
+	append!(df, DataFrame(cat="mem", testname="Bandwidth100kB", units="MiB/s", res=bandwidths[2])); 
+	append!(df, DataFrame(cat="mem", testname="Bandwidth1MB", units="MiB/s", res=bandwidths[3])); 
+	append!(df, DataFrame(cat="mem", testname="Bandwidth10MB", units="MiB/s", res=bandwidths[4])); 
+	append!(df, DataFrame(cat="mem", testname="Bandwidth100MB", units="MiB/s", res=bandwidths[5])); 
 	next!(prog)
 	
     prog.desc = "Disk IO tests"; ProgressMeter.updateProgress!(prog)
