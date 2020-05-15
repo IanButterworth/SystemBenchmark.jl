@@ -8,5 +8,7 @@ using SystemBenchmark
     res2 = readbenchmark(path);
     comp = comparetoref(res);
     show(comp, allrows=true, allcols=true)
+    
+    crowd = getsubmittedbenchmarks()
     println("") #tidy test printing
 end

@@ -1,9 +1,12 @@
 # SystemBenchmark.jl
  Julia package for benchmarking a system. Not yet released. Contributions very welcome, to help arrive at a stable test set.
 
+Submit your benchmarks to [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8)
+
+## Usage
 Run benchmark
 ```
-pkg> add https://github.com/ianshmean/SystemBenchmark.jl
+pkg> add SystemBenchmark
 julia> using SystemBenchmark
 julia> res = runbenchmark();
 julia> show(res, allrows=true)
@@ -48,35 +51,42 @@ julia> comp = comparetoref()
 [ Info: CuArrays.functional() == false. No usable GPU detected
 Compilation tests100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:01:58
 [ Info: Printing of results may be truncated. To view the full results use `show(res, allrows=true)`
-25×5 DataFrames.DataFrame
-│ Row │ cat         │ testname          │ ref_res                                  │ test_res                                 │ factor    │
-│     │ String      │ String            │ Any                                      │ Any                                      │ Any       │
-├─────┼─────────────┼───────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼───────────┤
-│ 1   │ info        │ SysBenchVer       │ 0.2.0                                    │ 0.2.0                                    │ Equal     │
-│ 2   │ info        │ JuliaVer          │ 1.4.1                                    │ 1.4.1                                    │ Equal     │
-│ 3   │ info        │ OS                │ Linux (x86_64-pc-linux-gnu)              │ macOS (x86_64-apple-darwin18.7.0)        │ Not equal │
-│ 4   │ info        │ CPU               │ Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz │ Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz │ Not equal │
-│ 5   │ info        │ WORD_SIZE         │ 64                                       │ 64                                       │ Equal     │
-│ 6   │ info        │ LIBM              │ libopenlibm                              │ libopenlibm                              │ Equal     │
-│ 7   │ info        │ LLVM              │ libLLVM-8.0.1 (ORCJIT, skylake)          │ libLLVM-8.0.1 (ORCJIT, skylake)          │ Equal     │
-│ 8   │ info        │ GPU               │ GeForce GTX 1650 with Max-Q Design       │ missing                                  │ Not equal │
-│ 9   │ cpu         │ FloatMul          │ 1.1339999999999999e-6                    │ 1.712e-6                                 │ 1.5097    │
-│ 10  │ cpu         │ FusedMulAdd       │ 1.6e-8                                   │ 3.8e-8                                   │ 2.375     │
-│ 11  │ cpu         │ FloatSin          │ 3.615e-6                                 │ 5.895e-6                                 │ 1.63071   │
-│ 12  │ cpu         │ VecMulBroad       │ 2.9521608040201004e-5                    │ 5.32994e-5                               │ 1.80544   │
-│ 13  │ cpu         │ CPUMatMul         │ 0.0287155                                │ 0.0405345                                │ 1.41159   │
-│ 14  │ cpu         │ MatMulBroad       │ 0.0045513333333333334                    │ 0.039575                                 │ 8.69525   │
-│ 15  │ cpu         │ 3DMulBroad        │ 0.0011464000000000001                    │ 0.00461081                               │ 4.02199   │
-│ 16  │ cpu         │ peakflops         │ 1.4181657387608237e11                    │ 2.08713e11                               │ 1.47171   │
-│ 17  │ cpu         │ FFMPEGH264Write   │ 137.047713                               │ 247.21                                   │ 1.80383   │
-│ 18  │ mem         │ DeepCopy          │ 0.0001815                                │ 0.000220008                              │ 1.21216   │
-│ 19  │ diskio      │ DiskWrite1KB      │ 0.0427835                                │ 0.142784                                 │ 3.33736   │
-│ 20  │ diskio      │ DiskWrite1MB      │ 0.875754                                 │ 0.794882                                 │ 0.907654  │
-│ 21  │ diskio      │ DiskRead1KB       │ 0.0078745                                │ 0.073282                                 │ 9.30624   │
-│ 22  │ diskio      │ DiskRead1MB       │ 0.150918                                 │ 0.570236                                 │ 3.77845   │
-│ 23  │ loading     │ JuliaLoad         │ 100.8979295                              │ 252.624                                  │ 2.50376   │
-│ 24  │ compilation │ compilecache      │ 269.615246                               │ 456.467                                  │ 1.69303   │
-│ 25  │ compilation │ create_expr_cache │ 1.148646                                 │ 9.60561                                  │ 8.36255   │
+32×6 DataFrames.DataFrame
+│ Row │ cat         │ testname                  │ units  │ ref_res                                  │ test_res                                 │ factor    │
+│     │ String      │ String                    │ String │ Any                                      │ Any                                      │ Any       │
+├─────┼─────────────┼───────────────────────────┼────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼───────────┤
+│ 1   │ info        │ SysBenchVer               │        │ 0.3.0                                    │ 0.3.0                                    │ Equal     │
+│ 2   │ info        │ JuliaVer                  │        │ 1.4.1                                    │ 1.4.1                                    │ Equal     │
+│ 3   │ info        │ OS                        │        │ Linux (x86_64-pc-linux-gnu)              │ macOS (x86_64-apple-darwin18.7.0)        │ Not Equal │
+│ 4   │ info        │ CPU                       │        │ Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz │ Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz │ Not Equal │
+│ 5   │ info        │ WORD_SIZE                 │        │ 64                                       │ 64                                       │ Equal     │
+│ 6   │ info        │ LIBM                      │        │ libopenlibm                              │ libopenlibm                              │ Equal     │
+│ 7   │ info        │ LLVM                      │        │ libLLVM-8.0.1 (ORCJIT, skylake)          │ libLLVM-8.0.1 (ORCJIT, skylake)          │ Equal     │
+│ 8   │ info        │ GPU                       │        │ GeForce GTX 1650 with Max-Q Design       │ missing                                  │ Not Equal │
+│ 9   │ cpu         │ FloatMul                  │ ms     │ 1.1339999999999999e-6                    │ 1.715e-6                                 │ 1.51235   │
+│ 10  │ cpu         │ FusedMulAdd               │ ms     │ 1.1339999999999999e-6                    │ 1.71e-6                                  │ 1.50794   │
+│ 11  │ cpu         │ FloatSin                  │ ms     │ 4.051e-6                                 │ 5.736e-6                                 │ 1.41595   │
+│ 12  │ cpu         │ VecMulBroad               │ ms     │ 2.9823115577889445e-5                    │ 5.12837e-5                               │ 1.7196    │
+│ 13  │ cpu         │ CPUMatMul                 │ ms     │ 0.018683                                 │ 0.0401375                                │ 2.14834   │
+│ 14  │ cpu         │ MatMulBroad               │ ms     │ 0.0042223                                │ 0.0205616                                │ 4.86976   │
+│ 15  │ cpu         │ 3DMulBroad                │ ms     │ 0.0010529                                │ 0.0017379                                │ 1.65058   │
+│ 16  │ cpu         │ peakflops                 │ flops  │ 1.8061545733047305e11                    │ 2.46247e11                               │ 1.36338   │
+│ 17  │ cpu         │ FFMPEGH264Write           │ ms     │ 107.751337                               │ 150.311                                  │ 1.39498   │
+│ 18  │ mem         │ DeepCopy                  │ ms     │ 0.00018790257558790594                   │ 0.000237082                              │ 1.26173   │
+│ 19  │ mem         │ Bandwidth10kB             │ MiB/s  │ 104871.77985698299                       │ 96519.5                                  │ 0.920357  │
+│ 20  │ mem         │ Bandwidth100kB            │ MiB/s  │ 58579.50346475738                        │ 42754.2                                  │ 0.729848  │
+│ 21  │ mem         │ Bandwidth1MB              │ MiB/s  │ 33439.963407070725                       │ 31394.6                                  │ 0.938835  │
+│ 22  │ mem         │ Bandwidth10MB             │ MiB/s  │ 5551.476774539766                        │ 10848.2                                  │ 1.95411   │
+│ 23  │ mem         │ Bandwidth100MB            │ MiB/s  │ 6910.9558841033295                       │ 8858.09                                  │ 1.28175   │
+│ 24  │ diskio      │ DiskWrite1KB              │ ms     │ 0.031895                                 │ 0.14471                                  │ 4.53707   │
+│ 25  │ diskio      │ DiskWrite1MB              │ ms     │ 0.920052                                 │ 0.554107                                 │ 0.602257  │
+│ 26  │ diskio      │ DiskRead1KB               │ ms     │ 0.006683666666666667                     │ 0.0730455                                │ 10.929    │
+│ 27  │ diskio      │ DiskRead1MB               │ ms     │ 0.143755                                 │ 0.592742                                 │ 4.12328   │
+│ 28  │ loading     │ JuliaLoad                 │ ms     │ 91.08045                                 │ 213.571                                  │ 2.34486   │
+│ 29  │ compilation │ compilecache              │ ms     │ 208.532099                               │ 336.518                                  │ 1.61375   │
+│ 30  │ compilation │ success_create_expr_cache │ ms     │ 235.4855485                              │ 334.724                                  │ 1.42142   │
+│ 31  │ compilation │ create_expr_cache         │ ms     │ 0.894126                                 │ 12.2583                                  │ 13.7098   │
+│ 32  │ compilation │ output-ji-substart        │ ms     │ 32.639706000000004                       │ 42.0636                                  │ 1.28873   │
 
 ```
 
@@ -90,8 +100,17 @@ Compare two benchmarks
 compare(ref::DataFrame, res::DataFrame)
 ```
 
-## Submitting Benchmarks
+## Crowdsourced Results
 
-It would be great to collect data across all the platforms being used.
-Please consider submitting results in this thread: [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8)
+Please consider submitting results to [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8).
+Any `.txt` results files posted to that issue can easily be collated into a dataframe with:
+```
+julia> comparison = getsubmittedbenchmarks()
+```
+or to specify another repo/issue:
+```
+getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8, refname::String="ref.txt", transpose::Bool=true)
+```
+
+Some basic plotting exists at [reporting/plotting.jl](https://github.com/ianshmean/SystemBenchmark.jl/reporting/plotting.jl), which hasn't been included in the main package due to limitations in platform compatability of Plots.jl.
 
