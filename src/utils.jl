@@ -19,7 +19,7 @@ function readprinteddataframe(str::String)
     select!(df, Not([1,2,8]))
 end
 
-function getsubmittedbenchmarks(repo::String="ianshmean/SystemBenchmark.jl",issue::Int=8, refname="ref.txt")
+function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8, refname::String="ref.txt", transpose::Bool=true)
     comments = GitHub.comments(repo, issue, :issue)[1]
     results = DataFrame[]
     i = 1
@@ -49,5 +49,22 @@ function getsubmittedbenchmarks(repo::String="ianshmean/SystemBenchmark.jl",issu
             next!(prog)
         end
     end
-    return master_res
+    if transpose
+        return restranspose(master_res)
+    else
+        return master_res
+    end
+end
+function restranspose(res::DataFrame)
+    resfilt = res[:,3:end]
+    rows =  collect.(eachrow(resfilt))
+    i = 1
+    for c in res.cat
+        if c != "info"
+            rows[i] = map(x->ismissing(x) ? missing : parse(Float64,x),rows[i])
+        end
+        i += 1
+    end
+    df = DataFrame([[names(resfilt)]; rows], [:resultid; Symbol.(res.testname)])
+    return df
 end
