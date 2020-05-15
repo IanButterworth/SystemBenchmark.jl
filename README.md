@@ -1,5 +1,5 @@
 # SystemBenchmark.jl
- Julia package for benchmarking a system. Not yet released. Contributions very welcome, to help arrive at a stable test set.
+ Julia package for benchmarking a system. Contributions very welcome!
 
 Submit your benchmarks to [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8)
 
