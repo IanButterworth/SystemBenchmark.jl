@@ -1,9 +1,12 @@
 # SystemBenchmark.jl
  Julia package for benchmarking a system. Not yet released. Contributions very welcome, to help arrive at a stable test set.
 
+Submit your benchmarks to [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8)
+
+## Usage
 Run benchmark
 ```
-pkg> add https://github.com/ianshmean/SystemBenchmark.jl
+pkg> add SystemBenchmark
 julia> using SystemBenchmark
 julia> res = runbenchmark();
 julia> show(res, allrows=true)
@@ -90,8 +93,17 @@ Compare two benchmarks
 compare(ref::DataFrame, res::DataFrame)
 ```
 
-## Submitting Benchmarks
+## Crowdsourced Results
 
-It would be great to collect data across all the platforms being used.
-Please consider submitting results in this thread: [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8)
+Please consider submitting results to [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8).
+Any `.txt` results files posted to that issue can easily be collated into a dataframe with:
+```
+julia> comparison = getsubmittedbenchmarks()
+```
+or to specify another repo/issue:
+```
+getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8, refname::String="ref.txt", transpose::Bool=true)
+```
+
+Some basic plotting exists at [reporting/plotting.jl](https://github.com/ianshmean/SystemBenchmark.jl/reporting/plotting.jl), which hasn't been included in the main package due to limitations in platform compatability of Plots.jl.
 
