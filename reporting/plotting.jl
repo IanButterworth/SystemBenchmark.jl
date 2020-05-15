@@ -1,10 +1,11 @@
-using CSV, DataFrames
-using Plots
 using SystemBenchmark
+using CSV
+using DataFrames
+using Plots
 using Statistics
 gr()
 
-function report(df,scale=2.0)
+function plotreport(df,scale=2.0)
     
     platforms = ["Windows", "macOS", "Linux (x86", "Linux (aarch"]
     colors = [:blue,:orange,:green,:purple]
@@ -82,11 +83,3 @@ end
 df = getsubmittedbenchmarks()
 savebenchmark(joinpath(@__DIR__,"all.csv"), df)
 report(df)
-
-
-# df = DataFrame(id=1:10,x=rand(10),y=rand(10))
-# for col in 2:size(df,2)
-#     df[!,col] = df[!,col] ./ df[1,col]
-# end
-# @show df
-
