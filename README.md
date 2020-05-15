@@ -9,36 +9,43 @@ Run benchmark
 pkg> add SystemBenchmark
 julia> using SystemBenchmark
 julia> res = runbenchmark();
-julia> show(res, allrows=true)
-25×3 DataFrame
-│ Row │ cat         │ testname          │ res                                      │
-│     │ String      │ String            │ Any                                      │
-├─────┼─────────────┼───────────────────┼──────────────────────────────────────────┤
-│ 1   │ info        │ SysBenchVer       │ 0.2.0                                    │
-│ 2   │ info        │ JuliaVer          │ 1.4.1                                    │
-│ 3   │ info        │ OS                │ macOS (x86_64-apple-darwin18.7.0)        │
-│ 4   │ info        │ CPU               │ Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz │
-│ 5   │ info        │ WORD_SIZE         │ 64                                       │
-│ 6   │ info        │ LIBM              │ libopenlibm                              │
-│ 7   │ info        │ LLVM              │ libLLVM-8.0.1 (ORCJIT, skylake)          │
-│ 8   │ info        │ GPU               │ missing                                  │
-│ 9   │ cpu         │ FloatMul          │ 1.766e-6                                 │
-│ 10  │ cpu         │ FusedMulAdd       │ 4.2e-8                                   │
-│ 11  │ cpu         │ FloatSin          │ 5.397e-6                                 │
-│ 12  │ cpu         │ VecMulBroad       │ 4.66298e-5                               │
-│ 13  │ cpu         │ CPUMatMul         │ 0.036044                                 │
-│ 14  │ cpu         │ MatMulBroad       │ 0.0190607                                │
-│ 15  │ cpu         │ 3DMulBroad        │ 0.00169715                               │
-│ 16  │ cpu         │ peakflops         │ 1.98568e11                               │
-│ 17  │ cpu         │ FFMPEGH264Write   │ 230.004                                  │
-│ 18  │ mem         │ DeepCopy          │ 0.000206386                              │
-│ 19  │ diskio      │ DiskWrite1KB      │ 0.142076                                 │
-│ 20  │ diskio      │ DiskWrite1MB      │ 0.686615                                 │
-│ 21  │ diskio      │ DiskRead1KB       │ 0.0691395                                │
-│ 22  │ diskio      │ DiskRead1MB       │ 0.527845                                 │
-│ 23  │ loading     │ JuliaLoad         │ 233.506                                  │
-│ 24  │ compilation │ compilecache      │ 373.706                                  │
-│ 25  │ compilation │ create_expr_cache │ 12.482                                   │
+julia> show(res, allrows=true, allcols=true)
+32×4 DataFrame
+│ Row │ cat         │ testname                  │ units  │ res                                      │
+│     │ String      │ String                    │ String │ Any                                      │
+├─────┼─────────────┼───────────────────────────┼────────┼──────────────────────────────────────────┤
+│ 1   │ info        │ SysBenchVer               │        │ 0.3.0                                    │
+│ 2   │ info        │ JuliaVer                  │        │ 1.4.1                                    │
+│ 3   │ info        │ OS                        │        │ macOS (x86_64-apple-darwin18.7.0)        │
+│ 4   │ info        │ CPU                       │        │ Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz │
+│ 5   │ info        │ WORD_SIZE                 │        │ 64                                       │
+│ 6   │ info        │ LIBM                      │        │ libopenlibm                              │
+│ 7   │ info        │ LLVM                      │        │ libLLVM-8.0.1 (ORCJIT, skylake)          │
+│ 8   │ info        │ GPU                       │        │ missing                                  │
+│ 9   │ cpu         │ FloatMul                  │ ms     │ 1.708e-6                                 │
+│ 10  │ cpu         │ FusedMulAdd               │ ms     │ 1.711e-6                                 │
+│ 11  │ cpu         │ FloatSin                  │ ms     │ 4.773e-6                                 │
+│ 12  │ cpu         │ VecMulBroad               │ ms     │ 4.55384e-5                               │
+│ 13  │ cpu         │ CPUMatMul                 │ ms     │ 0.041647                                 │
+│ 14  │ cpu         │ MatMulBroad               │ ms     │ 0.0194466                                │
+│ 15  │ cpu         │ 3DMulBroad                │ ms     │ 0.0016652                                │
+│ 16  │ cpu         │ peakflops                 │ flops  │ 1.96696e11                               │
+│ 17  │ cpu         │ FFMPEGH264Write           │ ms     │ 154.421                                  │
+│ 18  │ mem         │ DeepCopy                  │ ms     │ 0.000198299                              │
+│ 19  │ mem         │ Bandwidth10kB             │ MiB/s  │ 96265.8                                  │
+│ 20  │ mem         │ Bandwidth100kB            │ MiB/s  │ 50003.9                                  │
+│ 21  │ mem         │ Bandwidth1MB              │ MiB/s  │ 25855.3                                  │
+│ 22  │ mem         │ Bandwidth10MB             │ MiB/s  │ 11320.0                                  │
+│ 23  │ mem         │ Bandwidth100MB            │ MiB/s  │ 9684.15                                  │
+│ 24  │ diskio      │ DiskWrite1KB              │ ms     │ 0.145131                                 │
+│ 25  │ diskio      │ DiskWrite1MB              │ ms     │ 10.4186                                  │
+│ 26  │ diskio      │ DiskRead1KB               │ ms     │ 0.0969565                                │
+│ 27  │ diskio      │ DiskRead1MB               │ ms     │ 0.560448                                 │
+│ 28  │ loading     │ JuliaLoad                 │ ms     │ 209.872                                  │
+│ 29  │ compilation │ compilecache              │ ms     │ 338.605                                  │
+│ 30  │ compilation │ success_create_expr_cache │ ms     │ 349.521                                  │
+│ 31  │ compilation │ create_expr_cache         │ ms     │ 13.648                                   │
+│ 32  │ compilation │ output-ji-substart        │ ms     │ 7.2555                                   │
 ```
 
 Compare benchmark to the default reference (a 2019 MSI Linux i7 Laptop with )
