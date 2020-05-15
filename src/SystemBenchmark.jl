@@ -198,9 +198,9 @@ end
     membandwidthbenchmark() => bandwidths_MiB_s
     
 Run memory bandwidth benchmark, testing deepcopying on arrays of size
-`bytes_steps` which defaults to orders of magnitude from 100kB to 100 MB
+`bytes_steps` which defaults to orders of magnitude from 10kB to 100 MB
 """
-function membandwidthbenchmark(;bytes_steps = 10 .^ (5:8))
+function membandwidthbenchmark(;bytes_steps = [10_000, 100_000, 1_000_000, 10_000_000, 100_000_000])
     bandwidths_MiB_s = Float64[]
     for bytes in bytes_steps    
         t = @benchmark copy!(y, x) setup=(x=rand(UInt8,$bytes);y=rand(UInt8,$bytes))
