@@ -32,7 +32,7 @@ function plotreport(df,scale=2.0)
     i = 1
     for plat = platforms
         df2 = df[occursin.(plat,df.OS),:]
-        scatter!(df2[!,:mean_cpu], df2[!,:compilecache], label=plat, leg=false,ms=4,markerstrokewidth=0,color=colors[i])
+        scatter!(df2[!,:mean_cpu], df2[!,:compilecache], label=replace(plat,"("=>""), leg=false,ms=4,markerstrokewidth=0,color=colors[i])
         xlabel!("Mean CPU time (relative to ref)")
         ylabel!("compilecache time\n(relative to ref)")
         i += 1
@@ -44,7 +44,7 @@ function plotreport(df,scale=2.0)
     i = 1
     for plat in platforms
         df2 = df[occursin.(plat,df.OS),:]
-        scatter!(df2[!,:mean_cpu],df2[!,:JuliaLoad],label=plat, legend=:best, bg_legend = :transparent, fg_legend = :transparent,ms=4,markerstrokewidth=0,color=colors[i])
+        scatter!(df2[!,:mean_cpu],df2[!,:JuliaLoad],label=replace(plat,"("=>""), legend=:best, bg_legend = :transparent, fg_legend = :transparent,ms=4,markerstrokewidth=0,color=colors[i])
         xlabel!("Mean CPU time (relative to ref)")
         ylabel!("Julia startup time\n(relative to ref)")
         i += 1
@@ -56,7 +56,7 @@ function plotreport(df,scale=2.0)
     i = 1
     for plat in platforms
         df2 = df[occursin.(plat,df.OS),:]
-        scatter!(df2[!,:mean_cpu],df2[!,:mean_diskio],label=plat, fontsize=4,leg=false,ms=4,markerstrokewidth=0,color=colors[i])
+        scatter!(df2[!,:mean_cpu],df2[!,:mean_diskio],label=replace(plat,"("=>""), fontsize=4,leg=false,ms=4,markerstrokewidth=0,color=colors[i])
         xlabel!("Mean CPU time (relative to ref)")
         ylabel!("Mean disk IO time\n(relative to ref)")
         i += 1
@@ -68,7 +68,7 @@ function plotreport(df,scale=2.0)
     i = 1
     for plat in platforms
         df2 = df[occursin.(plat,df.OS),:]
-        scatter!(df2[!,Symbol("compilecache")],df2[!,Symbol("FFMPEGH264Write")],label=plat, fontsize=4,leg=false,ms=4,markerstrokewidth=0,color=colors[i])
+        scatter!(df2[!,Symbol("compilecache")],df2[!,Symbol("FFMPEGH264Write")],label=replace(plat,"("=>""), fontsize=4,leg=false,ms=4,markerstrokewidth=0,color=colors[i])
         xlabel!("compilecache time\n(relative to ref)")
         ylabel!("FFMPEGH264Write time\n(relative to ref)")
         i += 1
