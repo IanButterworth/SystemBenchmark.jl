@@ -55,7 +55,9 @@ function readbenchmark(path::String)
 end
 
 function compare(ref::DataFrame, test::DataFrame)
-	df = DataFrame(cat=String[], testname=String[], units=String[], ref_res=Any[], test_res=Any[], factor=Any[])
+	df = DataFrame(cat=String[], testname=String[], units=Union{String,Missing}[], ref_res=Any[], test_res=Any[], factor=Any[])
+	!("units" in names(ref)) && (ref.units = fill(missing,size(ref,1)))
+	!("units" in names(test)) && (test.units = fill(missing,size(ref,1)))
     for testname in unique(test.testname)
 		testrow = test[test.testname .== testname, :]
 		!in(testname, unique(ref.testname)) && continue #test missing from reference benchmark

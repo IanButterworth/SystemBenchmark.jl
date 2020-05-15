@@ -15,8 +15,13 @@ function readprinteddataframe(str::String)
     else
         start = 1 #try first line
     end
-    df = DataFrame(CSV.File(IOBuffer(str), delim="│", header=start+1, datarow=start+4))
-    select!(df, Not([1,2,8]))
+    df = DataFrame(CSV.File(IOBuffer(str), delim="│", header=start, datarow=start+4))
+    select!(df, Not([1,2,6]))
+    names!(df,Symbol.(strip.(names(df))))
+    df[!,:cat] = string.(strip.(df[:cat]))
+    df[!,:testname] = string.(strip.(df[:testname]))
+    df[!,:res] = string.(strip.(df[:res]))
+    return df
 end
 
 function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8, refname::String="ref.txt", transpose::Bool=true)
