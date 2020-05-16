@@ -263,7 +263,7 @@ function output_ji()
     run(`$(Base.julia_cmd()) -O0 
         --output-ji $tempout --output-incremental=yes 
         --startup-file=no --history-file=no --warn-overwrite=yes 
-        --eval "include(\"$examplemod\")"`)
+        $examplemod`)
 end
 
 end #module
