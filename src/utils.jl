@@ -43,20 +43,19 @@ function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", is
             datetime = comment.updated_at
             file = download(resulturl)
             res = readbenchmark(file)
-            if "test_res" in names(res)
-                res = DataFrame(cat=res.cat, testname=res.testname, res=res.test_res)
-            end
             if ("units" in names(res))
+                "test_res" in names(res) && (res = DataFrame(cat=res.cat, testname=res.testname, units=res.units, res=res.test_res))
                 res_formatted = DataFrame(cat=["info","info"],testname=["user","datetime"],units=Union{String,Missing}[missing,missing],res=[username,datetime])
                 append!(res_formatted, res)
                 rename!(res_formatted, [:cat,:testname,:units,Symbol("res_$i")])
+                master_res = DataFrames.outerjoin(master_res, res_formatted, on = [:cat,:units,:testname])
             else
+                "test_res" in names(res) && (res = DataFrame(cat=res.cat, testname=res.testname, res=res.test_res))
                 res_formatted = DataFrame(cat=["info","info"],testname=["user","datetime"],res=[username,datetime])
                 append!(res_formatted, res)
                 rename!(res_formatted, [:cat,:testname,Symbol("res_$i")])
+                master_res = DataFrames.outerjoin(master_res, res_formatted, on = [:cat,:testname])
             end
-            
-            master_res = DataFrames.outerjoin(master_res, res_formatted, on = [:cat,:testname])
             i += 1
             next!(prog)
         end
