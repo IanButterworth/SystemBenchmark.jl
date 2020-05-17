@@ -104,6 +104,10 @@ function runbenchmark(;printsysinfo = true)
     else
         @info "CuArrays.functional() == false. No usable GPU detected"
     end
+	
+	#remove extra CI args in julia cmd
+	juliacmd = collect(Base.julia_cmd())
+	filter!(x->!in(x, ["--check-bounds=yes", "-g1", "--code-coverage=user", "-O3", "-O2", "-O1", "-O0"]), juliacmd)
 
     df = getsysteminfo() #initialize DataFrame with system info 
     prog = ProgressMeter.Progress(ntests) 
@@ -162,7 +166,8 @@ function runbenchmark(;printsysinfo = true)
     t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
 	
     t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
-    t = @benchmark output_ji(tempout[1]) setup=(tempout = mktemp()) teardown=rm(tempout[1]); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
+	tempout = mktemp()
+    t = @benchmark output_ji($juliacmd, $(tempout[1])); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
     
     finish!(prog)
 
@@ -256,12 +261,10 @@ end
 function runjuliabasic()
     run(`$(Base.julia_cmd()) -O0 --startup-file=no --history-file=no --eval="1"`)
 end
+
 const EXAMPLEMOD = joinpath(@__DIR__, "ExampleModule.jl")
-function output_ji(tempout)
-	#remove extra CI args in julia cmd
-	juliacmd = replace(Base.julia_cmd(), "--check-bounds=yes -g1 --code-coverage=user" => "") 
-    run(`$(juliacmd) -O0 --output-ji $tempout --output-incremental=yes 
-        --startup-file=no --history-file=no --warn-overwrite=yes $EXAMPLEMOD`)
+function output_ji(juliacmd, tempout)
+	run(`$juliacmd -O0 --output-ji $tempout --output-incremental=yes --startup-file=no --history-file=no --warn-overwrite=yes $EXAMPLEMOD`)
 end
 
 end #module
