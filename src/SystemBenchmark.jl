@@ -169,7 +169,7 @@ function runbenchmark(;printsysinfo = true)
     t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
 	GC.gc()
 	tempout = joinpath(@__DIR__,"output.ji") #test in same location as julia depot
-    t = @benchmark output_ji($juliacmd, $(tempout)) samples=5 teardown=rm(tempout, force=true); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
+    t = @benchmark output_ji($juliacmd, $tempout) samples=5 teardown=rm($tempout, force=true); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
     rm(tempout, force=true)
     finish!(prog)
 
