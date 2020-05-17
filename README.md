@@ -3,6 +3,14 @@
 
 Submit your benchmarks to [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8)
 
+## Status
+
+![Run Tests](https://github.com/ianshmean/SystemBenchmark.jl/workflows/Run%20tests/badge.svg?branch=master) GitHub Actions - Linux, MacOS, Windows - x86_64
+[![Build Status](https://travis-ci.com/ianshmean/SystemBenchmark.jl.svg?branch=master)](https://travis-ci.com/ianshmean/SystemBenchmark.jl) Travis - Linux, MacOS, FreeBSD - x86_64
+[![Build status](https://ci.appveyor.com/api/projects/status/ggiktxq7hkg2fvfs/branch/master?svg=true)](https://ci.appveyor.com/project/ianshmean/systembenchmark-jl/branch/master) Appveyor - Windows - x86, x86_64
+[![Build Status](https://cloud.drone.io/api/badges/ianshmean/SystemBenchmark.jl/status.svg)](https://cloud.drone.io/ianshmean/SystemBenchmark.jl) Drone - Linux - x86, x86_64
+
+
 ## Usage
 Run benchmark
 ```

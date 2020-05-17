@@ -104,6 +104,10 @@ function runbenchmark(;printsysinfo = true)
     else
         @info "CuArrays.functional() == false. No usable GPU detected"
     end
+	
+	#remove extra CI args in julia cmd
+	juliacmd = collect(Base.julia_cmd())
+	filter!(x->!in(x, ["--check-bounds=yes", "-g1", "--code-coverage=user", "-O3", "-O2", "-O1", "-O0"]), juliacmd)
 
     df = getsysteminfo() #initialize DataFrame with system info 
     prog = ProgressMeter.Progress(ntests) 
@@ -116,16 +120,16 @@ function runbenchmark(;printsysinfo = true)
     t = @benchmark x .* x setup=(x=rand(Float32, 100, 100)); append!(df, DataFrame(cat="cpu", testname="MatMulBroad", units="ms", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark x .* x setup=(x=rand(10,10,10)); append!(df, DataFrame(cat="cpu", testname="3DMulBroad", units="ms", res=median(t).time / 1e6)); next!(prog)
     append!(df, DataFrame(cat="cpu", testname="peakflops", units="flops", res=maximum(LinearAlgebra.peakflops() for _ in 1:10))); next!(prog)
-   
+	
     t = @benchmark writevideo(imgstack) setup=(imgstack=map(x->rand(UInt8,100,100), 1:100)); append!(df, DataFrame(cat="cpu", testname="FFMPEGH264Write", units="ms", res=median(t).time / 1e6)); next!(prog)
-    isfile(joinpath(@__DIR__, "testvideo.mp4")) && rm(joinpath(@__DIR__, "testvideo.mp4"))
-
+    rm(joinpath(@__DIR__, "testvideo.mp4"), force=true)
+	
     if HAS_GPU[]
         prog.desc = "GPU tests"; ProgressMeter.updateProgress!(prog)
         x=cu(rand(Float32,100,100))
         t = @benchmark $x * $x; append!(df, DataFrame(cat="gpu", testname="GPUMatMul", units="ms", res=median(t).time / 1e6)); next!(prog)
     end
-
+	
     prog.desc = "Memory tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark deepcopy(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="mem", testname="DeepCopy", units="ms", res=median(t).time / 1e6)); next!(prog)
 	bandwidths = membandwidthbenchmark(bytes_steps = [10_000, 100_000, 1_000_000, 10_000_000, 100_000_000])
@@ -140,31 +144,33 @@ function runbenchmark(;printsysinfo = true)
     t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1KB", units="ms", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1MB", units="ms", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1KB", units="ms", res=median(t).time / 1e6)); next!(prog)
-    isfile(joinpath(@__DIR__, "testwrite.dat")) && rm(joinpath(@__DIR__, "testwrite.dat"))
+    rm(joinpath(@__DIR__, "testwrite.dat"), force=true)
     t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1MB", units="ms", res=median(t).time / 1e6)); next!(prog)
-    isfile(joinpath(@__DIR__, "testwrite.dat")) && rm(joinpath(@__DIR__, "testwrite.dat"))
-    
-
+    rm(joinpath(@__DIR__, "testwrite.dat"), force=true)
+	
     prog.desc = "Julia loading tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark runjulia("1+1"); append!(df, DataFrame(cat="loading", testname="JuliaLoad", units="ms", res=median(t).time / 1e6)); next!(prog)
     juliatime = median(t).time / 1e6
-
+	
     prog.desc = "Compilation tests"; ProgressMeter.updateProgress!(prog)
-    insert!(LOAD_PATH, 1, @__DIR__); insert!(DEPOT_PATH, 1, mktempdir())
+	tmpdir = mktempdir()
+	insert!(LOAD_PATH, 1, @__DIR__); insert!(DEPOT_PATH, 1, tmpdir)
     Logging.disable_logging(Logging.Info)
     pkg = Base.PkgId("ExampleModule")
-    t = @benchmark Base.compilecache($pkg); append!(df, DataFrame(cat="compilation", testname="compilecache", units="ms", res=(median(t).time / 1e6))); next!(prog)
-    path, cachefile, concrete_deps = compilecache_init(pkg)
+    t = @benchmark Base.compilecache($pkg) teardown=rm(joinpath($tmpdir,"compiled"), recursive=true, force=true); append!(df, DataFrame(cat="compilation", testname="compilecache", units="ms", res=(median(t).time / 1e6))); next!(prog)
+    
+	path, cachefile, concrete_deps = compilecache_init(pkg)
     Logging.disable_logging(Logging.Debug)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
-
     # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue, so slowGC() is used as a teardown to slow the process
     t = @benchmark success(io) setup=(io=Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid)) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
     t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
-    
+	
     t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
-    t = @benchmark output_ji() teardown=sleep(0.1); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
-    
+	GC.gc()
+	tempout = joinpath(@__DIR__,"output.ji") #test in same location as julia depot
+    t = @benchmark output_ji($juliacmd, $tempout) samples=5 teardown=rm($tempout, force=true); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
+    rm(tempout, force=true)
     finish!(prog)
 
     @info "Printing of results may be truncated. To view the full results use `show(res, allrows=true, allcols=true)`"
@@ -257,13 +263,10 @@ end
 function runjuliabasic()
     run(`$(Base.julia_cmd()) -O0 --startup-file=no --history-file=no --eval="1"`)
 end
-function output_ji()
-    examplemod = joinpath(@__DIR__, "ExampleModule.jl")
-    tempout, io = mktemp()
-    run(`$(Base.julia_cmd()) -O0 
-        --output-ji $tempout --output-incremental=yes 
-        --startup-file=no --history-file=no --warn-overwrite=yes 
-        $examplemod`)
+
+const EXAMPLEMOD = joinpath(@__DIR__, "ExampleModule.jl")
+function output_ji(juliacmd, tempout)
+	run(`$juliacmd -O0 --output-ji $tempout --output-incremental=yes --startup-file=no --history-file=no --warn-overwrite=yes $EXAMPLEMOD`)
 end
 
 end #module

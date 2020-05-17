@@ -24,9 +24,15 @@ function readprinteddataframe(str::String)
     return df
 end
 
-function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8, refname::String="ref.txt", transpose::Bool=true)
-    comments = GitHub.comments(repo, issue, :issue)[1]
-    results = DataFrame[]
+function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8, 
+                    refname::String="ref.txt", transpose::Bool=true, authkey=get(ENV,"PERSONAL_ACCESS_TOKEN",nothing))
+                    
+    if !isnothing(authkey)
+        auth = GitHub.authenticate(authkey)
+        comments = GitHub.comments(repo, issue, :issue, auth=auth)[1]
+    else
+        comments = GitHub.comments(repo, issue, :issue)[1]
+    end
     i = 1
     ref = readbenchmark(joinpath(dirname(@__DIR__), "ref", refname))
     master_res = DataFrame(cat=["info","info"],testname=["user","datetime"],units=Union{String,Missing}[missing,missing],res=["ref","2020-05-10"])
