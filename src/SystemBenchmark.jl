@@ -258,10 +258,10 @@ function runjuliabasic()
 end
 const EXAMPLEMOD = joinpath(@__DIR__, "ExampleModule.jl")
 function output_ji(tempout)
-    run(`$(Base.julia_cmd()) -O0 
-        --output-ji $tempout --output-incremental=yes 
-        --startup-file=no --history-file=no --warn-overwrite=yes 
-        $EXAMPLEMOD`)
+	#remove extra CI args in julia cmd
+	juliacmd = replace(Base.julia_cmd(), "--check-bounds=yes -g1 --code-coverage=user" => "") 
+    run(`$(juliacmd) -O0 --output-ji $tempout --output-incremental=yes 
+        --startup-file=no --history-file=no --warn-overwrite=yes $EXAMPLEMOD`)
 end
 
 end #module
