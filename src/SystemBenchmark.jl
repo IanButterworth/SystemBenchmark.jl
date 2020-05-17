@@ -144,23 +144,24 @@ function runbenchmark(;printsysinfo = true)
     t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1KB", units="ms", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark tempwrite(x) setup=(x=rand(UInt8,1000000)); append!(df, DataFrame(cat="diskio", testname="DiskWrite1MB", units="ms", res=median(t).time / 1e6)); next!(prog)
     t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1KB", units="ms", res=median(t).time / 1e6)); next!(prog)
-    isfile(joinpath(@__DIR__, "testwrite.dat")) && rm(joinpath(@__DIR__, "testwrite.dat"))
+    rm(joinpath(@__DIR__, "testwrite.dat"), force=true)
     t = @benchmark tempread(path) setup=(path = tempwrite(rand(UInt8,1000000), delete=false)); append!(df, DataFrame(cat="diskio", testname="DiskRead1MB", units="ms", res=median(t).time / 1e6)); next!(prog)
-    isfile(joinpath(@__DIR__, "testwrite.dat")) && rm(joinpath(@__DIR__, "testwrite.dat"))
+    rm(joinpath(@__DIR__, "testwrite.dat"), force=true)
 	
     prog.desc = "Julia loading tests"; ProgressMeter.updateProgress!(prog)
     t = @benchmark runjulia("1+1"); append!(df, DataFrame(cat="loading", testname="JuliaLoad", units="ms", res=median(t).time / 1e6)); next!(prog)
     juliatime = median(t).time / 1e6
 	
     prog.desc = "Compilation tests"; ProgressMeter.updateProgress!(prog)
-    insert!(LOAD_PATH, 1, @__DIR__); insert!(DEPOT_PATH, 1, mktempdir())
+	tmpdir = mktempdir()
+	insert!(LOAD_PATH, 1, @__DIR__); insert!(DEPOT_PATH, 1, tmpdir)
     Logging.disable_logging(Logging.Info)
     pkg = Base.PkgId("ExampleModule")
-    t = @benchmark Base.compilecache($pkg); append!(df, DataFrame(cat="compilation", testname="compilecache", units="ms", res=(median(t).time / 1e6))); next!(prog)
-    path, cachefile, concrete_deps = compilecache_init(pkg)
+    t = @benchmark Base.compilecache($pkg) teardown=rm(joinpath($tmpdir,"compiled"), recursive=true, force=true); append!(df, DataFrame(cat="compilation", testname="compilecache", units="ms", res=(median(t).time / 1e6))); next!(prog)
+    
+	path, cachefile, concrete_deps = compilecache_init(pkg)
     Logging.disable_logging(Logging.Debug)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
-	
     # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue, so slowGC() is used as a teardown to slow the process
     t = @benchmark success(io) setup=(io=Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid)) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
     t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
@@ -168,8 +169,8 @@ function runbenchmark(;printsysinfo = true)
     t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
 	GC.gc()
 	tempout = joinpath(@__DIR__,"output.ji") #test in same location as julia depot
-    t = @benchmark output_ji($juliacmd, $(tempout)) samples=5 teardown=GC.gc(); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
-    isfile(tempout) && rm(tempout)
+    t = @benchmark output_ji($juliacmd, $(tempout)) samples=5 teardown=rm(tempout, force=true); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
+    rm(tempout, force=true)
     finish!(prog)
 
     @info "Printing of results may be truncated. To view the full results use `show(res, allrows=true, allcols=true)`"
