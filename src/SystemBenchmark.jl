@@ -166,8 +166,9 @@ function runbenchmark(;printsysinfo = true)
     t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
 	
     t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
+	GC.gc()
 	tempout = mktemp()
-    t = @benchmark output_ji($juliacmd, $(tempout[1])); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
+    t = @benchmark output_ji($juliacmd, $(tempout[1])) teardown=GC.gc(); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
     
     finish!(prog)
 
