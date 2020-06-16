@@ -1,6 +1,6 @@
 name = "SystemBenchmark"
 uuid = "30cdaa97-48ad-4abc-9688-3a7175b8083d"
-version = "0.3.2"
+version = "0.3.3"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
@@ -22,7 +22,7 @@ CSV = "0.6"
 CuArrays = "2.2"
 DataFrames = "0.21"
 GitHub = "5.1"
-ProgressMeter = "1.2"
+ProgressMeter = "1.3"
 VideoIO = "0.6.11, 0.7"
 julia = "1"
 
