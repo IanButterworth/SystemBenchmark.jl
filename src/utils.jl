@@ -16,7 +16,7 @@ function readprinteddataframe(str::String)
         start = 1 #try first line
     end
     df = DataFrame(CSV.File(IOBuffer(str), delim="│", header=start, datarow=start+4))
-    select!(df, Not([1,2,6]))
+    select!(df, Not([1,2,length(names(df))]))
     names!(df,Symbol.(strip.(names(df))))
     df[!,:cat] = string.(strip.(df[:cat]))
     df[!,:testname] = string.(strip.(df[:testname]))
