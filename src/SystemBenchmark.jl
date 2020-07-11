@@ -97,6 +97,19 @@ function comparetoref(test::DataFrame; refname="ref.txt")
     return compare(ref, test)
 end
 
+function diskio(;num_zeros = 3:5, digits=1:9)
+	for zeros in num_zeros
+		for dig in digits
+			bytes = parse(Int,"$(dig)$(repeat("0",zeros))")
+			path = tempwrite(rand(UInt8,bytes), delete=false)
+			t = @benchmark tempread($path);
+			time_s = minimum(t).time / 1e9
+	        MiB_s = (bytes / time_s)  / (1024 * 1024)
+			@info "File size: $(round(Int,bytes/1000)) KB. Read speed: $(round(MiB_s,digits=1)) MiB/s"
+		end
+	end
+end
+
 function runbenchmark(;printsysinfo = true)
     ntests = 21
     if HAS_GPU[]
