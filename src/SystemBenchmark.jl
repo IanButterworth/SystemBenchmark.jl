@@ -1,6 +1,6 @@
 module SystemBenchmark
 using BenchmarkTools
-using CuArrays
+using CUDA
 using CSV
 using DataFrames
 using InteractiveUtils
@@ -16,7 +16,7 @@ export runbenchmark, compare, comparetoref, savebenchmark, readbenchmark, getsub
 const HAS_GPU = Ref{Bool}(false)
 
 function __init__()
-    HAS_GPU[] = CuArrays.functional()
+    HAS_GPU[] = CUDA.functional()
 end
 
 function getinfofield(info::String, field::String)::String
@@ -38,7 +38,7 @@ function getsysteminfo()
     push!(df, ["info","LIBM","",getinfofield(systeminfo, "LIBM:")])
     push!(df, ["info","LLVM","",getinfofield(systeminfo, "LLVM:")])
     if HAS_GPU[] 
-        push!(df, ["info","GPU","",CuArrays.CUDAdrv.name(CuArrays.CUDAdrv.device())])
+        push!(df, ["info","GPU","",CUDA.name(CUDA.device())])
     else
         push!(df, ["info","GPU","",missing])
     end
@@ -102,7 +102,7 @@ function runbenchmark(;printsysinfo = true)
     if HAS_GPU[]
         ntests += 1
     else
-        @info "CuArrays.functional() == false. No usable GPU detected"
+        @info "CUDA.functional() == false. No usable GPU detected"
     end
 	
 	#remove extra CI args in julia cmd
