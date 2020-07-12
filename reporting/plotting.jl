@@ -80,6 +80,108 @@ function plotreport(df, figurepath; scale=2.0)
     savefig(figurepath)
 end
 
+function memoryreport(df, figurepath; scale=2.0)
+    
+    platforms = ["Windows", "macOS", "Linux (x86", "Linux (aarch"]
+    colors = [:blue,:orange,:green,:purple]
+    # for col in 12:size(df,2)
+    #     df[!,col] = df[!,col] ./ df[1,col]
+    # end
+    
+    df[!,:mean_cpu] = map(x->mean([x.FloatMul,
+        x.FusedMulAdd,
+        x.FloatSin,
+        x.VecMulBroad,
+        #x.CPUMatMul,
+        x.MatMulBroad,
+        x[Symbol("3DMulBroad")]]),eachrow(df))
+    
+    df[!,:mean_diskio] = map(x->mean([x.DiskWrite1KB,
+        x.DiskWrite1MB,
+        x.DiskRead1KB,
+        x.DiskRead1MB]),eachrow(df))
+    
+    
+    p1 = plot(dpi=300)
+    i = 1
+    for plat = platforms
+        df2 = df[occursin.(plat,df.OS),:]
+        x = df2[!,:mean_cpu]
+        y = df2[!,:Bandwidth10kB]
+        x = x[.!ismissing.(y)]
+        y = y[.!ismissing.(y)]
+        scatter!(x, y, label=replace(plat,"("=>""), leg=false,ms=4,markerstrokewidth=0,color=colors[i])
+        xlabel!("Mean CPU time")
+        ylabel!("Bandwidth10kB")
+        i += 1
+    end
+    #xlims!(0,10); ylims!(0,15)
+
+    p2 = plot()
+    i = 1
+    for plat in platforms
+        df2 = df[occursin.(plat,df.OS),:]
+        x = df2[!,:mean_cpu]
+        y = df2[!,:Bandwidth100kB]
+        x = x[.!ismissing.(y)]
+        y = y[.!ismissing.(y)]
+        scatter!(x, y, label=replace(plat,"("=>""), legend=:best, bg_legend = :transparent, fg_legend = :transparent,ms=4,markerstrokewidth=0,color=colors[i])
+        xlabel!("Mean CPU time")
+        ylabel!("Bandwidth100kB")
+        i += 1
+    end
+    #xlims!(0,10); ylims!(0,15)
+
+    # p3 = plot()
+    # i = 1
+    # for plat in platforms
+    #     df2 = df[occursin.(plat,df.OS),:]
+    #     x = df2[!,:mean_cpu]
+    #     y = df2[!,:Bandwidth1MB]
+    #     x = x[.!ismissing.(y)]
+    #     y = y[.!ismissing.(y)]
+    #     scatter!(x, y, label=replace(plat,"("=>""), leg=false,ms=4,markerstrokewidth=0,color=colors[i])
+    #     xlabel!("Mean CPU time")
+    #     ylabel!("Bandwidth1MB")
+    #     i += 1
+    # end
+
+    p3 = plot()
+    i = 1
+    for plat in platforms
+        df2 = df[occursin.(plat,df.OS),:]
+        x = df2[!,:mean_cpu]
+        y = df2[!,:Bandwidth10MB]
+        x = x[.!ismissing.(y)]
+        y = y[.!ismissing.(y)]
+        scatter!(x, y, label=replace(plat,"("=>""), leg=false,ms=4,markerstrokewidth=0,color=colors[i])
+        xlabel!("Mean CPU time")
+        ylabel!("Bandwidth10MB")
+        i += 1
+    end
+    
+    p4 = plot()
+    i = 1
+    for plat in platforms
+        df2 = df[occursin.(plat,df.OS),:]
+        x = df2[!,:mean_cpu]
+        y = df2[!,:DeepCopy]
+        x = x[.!ismissing.(y)]
+        y = y[.!ismissing.(y)]
+        scatter!(x, y, label=replace(plat,"("=>""), leg=false,ms=4,markerstrokewidth=0,color=colors[i])
+        xlabel!("Mean CPU time")
+        ylabel!("DeepCopy")
+        i += 1
+    end
+
+    plot(p1,p2,p3,p4,dpi=300,size=(400*scale,300*scale))
+
+    savefig(figurepath)
+end
+
+using SystemBenchmark
 df = getsubmittedbenchmarks()
-savebenchmark(joinpath(@__DIR__,"all.csv"), df)
-plotreport(df, joinpath(@__DIR__,"summary_cropped.png"))
+#savebenchmark(joinpath(@__DIR__,"all.csv"), df)
+# plotreport(df, joinpath(@__DIR__,"summary_cropped.png"))
+memoryreport(df, joinpath(@__DIR__,"memoryreport2.png"))
+
