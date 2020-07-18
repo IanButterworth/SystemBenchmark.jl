@@ -4,15 +4,16 @@ on: [push]
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        julia-version: ['1.4']
-        julia-arch: [x64]
-        os: [ubuntu-latest, macOS-latest, windows-latest]
-        exclude:
-          - os: macOS-latest
-            julia-arch: x86
+    runs-on: self-hosted
+    # runs-on: ${{ matrix.os }}
+    # strategy:
+    #   matrix:
+    #     julia-version: ['1.4']
+    #     julia-arch: [x64]
+    #     os: [ubuntu-latest, macOS-latest, windows-latest]
+    #     exclude:
+    #       - os: macOS-latest
+    #         julia-arch: x86
 
     steps:
       - run: echo "::set-env name=PERSONAL_ACCESS_TOKEN::${{ secrets.PERSONAL_ACCESS_TOKEN }}"
