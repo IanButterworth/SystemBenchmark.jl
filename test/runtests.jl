@@ -1,6 +1,8 @@
 using Test
 using SystemBenchmark
 
+using InteractiveUtils; versioninfo()
+
 @testset "SystemBenchmark" begin
     res = runbenchmark();
     path, io = mktemp()
