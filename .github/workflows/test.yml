@@ -19,6 +19,7 @@ jobs:
       - run: julia -e '@info "Hello world"'
       - run: julia --color=yes -e '@info "Hello world"'
       - run: julia --color=yes -e 'using Pkg; Pkg.status()'
+      - run: julia --color=yes -e using Pkg; Pkg.status()
       - run: julia --color=yes --check-bounds=yes --project -e '@info "Hello world"'
       - run: julia --color=no -e '@info "Hello world"'
       - run: julia --color=yes -e 'using Logging; @show global_logger().stream === stderr'
