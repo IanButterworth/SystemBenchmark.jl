@@ -16,9 +16,12 @@ jobs:
     #         julia-arch: x86
 
     steps:
+      - run: julia -e 'using InteractiveUtils; versioninfo()'
       - run: julia -e '@info "Hello world"'
       - run: julia --color=yes -e '@info "Hello world"'
       - run: julia --color=yes -e 'using Pkg; Pkg.status()'
+      - run: julia --color=yes -e 'using Pkg; Pkg.status()'
+      -
       
       - run: julia --color=yes --check-bounds=yes --project -e '@info "Hello world"'
       - run: julia --color=no -e '@info "Hello world"'
