@@ -16,6 +16,10 @@ jobs:
     #         julia-arch: x86
 
     steps:
+      - run: julia -e '@info "Hello world"'
+      - run: julia --color=yes -e '@info "Hello world"'
+      - run: julia --color=no -e '@info "Hello world"'
+      - run: julia --color=yes -e 'using Logging; @show global_logger().stream === stderr'
       - run: echo "::set-env name=PERSONAL_ACCESS_TOKEN::${{ secrets.PERSONAL_ACCESS_TOKEN }}"
       - uses: actions/checkout@v1.0.0
       - uses: julia-actions/setup-julia@latest
