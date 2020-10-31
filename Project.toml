@@ -19,7 +19,7 @@ VideoIO = "d6d074c3-1acf-5d4c-9a43-ef38773959a2"
 [compat]
 BenchmarkTools = "0.5"
 CSV = "0.6, 0.7"
-CUDA = "1.1"
+CUDA = "1.1, 2.1"
 DataFrames = "0.21"
 GitHub = "5.1"
 ProgressMeter = "1.3"
