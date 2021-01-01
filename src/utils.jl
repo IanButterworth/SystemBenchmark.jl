@@ -24,9 +24,9 @@ function readprinteddataframe(str::String)
     return df
 end
 
-function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8, 
+function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8,
                     refname::String="ref.txt", transpose::Bool=true, authkey=get(ENV,"PERSONAL_ACCESS_TOKEN",nothing))
-                    
+
     if !isnothing(authkey)
         auth = GitHub.authenticate(authkey)
         comments = GitHub.comments(repo, issue, :issue, auth=auth)[1]
@@ -54,13 +54,13 @@ function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", is
                 res_formatted = DataFrame(cat=["info","info"],testname=["user","datetime"],units=Union{String,Missing}[missing,missing],res=[username,datetime])
                 append!(res_formatted, res)
                 rename!(res_formatted, [:cat,:testname,:units,Symbol("res_$i")])
-                master_res = DataFrames.outerjoin(master_res, res_formatted, on = [:cat,:units,:testname])
+                master_res = DataFrames.outerjoin(master_res, res_formatted, on = [:cat,:units,:testname], matchmissing=:equal)
             else
                 "test_res" in names(res) && (res = DataFrame(cat=res.cat, testname=res.testname, res=res.test_res))
                 res_formatted = DataFrame(cat=["info","info"],testname=["user","datetime"],res=[username,datetime])
                 append!(res_formatted, res)
                 rename!(res_formatted, [:cat,:testname,Symbol("res_$i")])
-                master_res = DataFrames.outerjoin(master_res, res_formatted, on = [:cat,:testname])
+                master_res = DataFrames.outerjoin(master_res, res_formatted, on = [:cat,:testname], matchmissing=:equal)
             end
             i += 1
             next!(prog)
