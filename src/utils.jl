@@ -24,9 +24,9 @@ function readprinteddataframe(str::String)
     return df
 end
 
-function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8, 
+function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8,
                     refname::String="ref.txt", transpose::Bool=true, authkey=get(ENV,"PERSONAL_ACCESS_TOKEN",nothing))
-                    
+
     if !isnothing(authkey)
         auth = GitHub.authenticate(authkey)
         comments = GitHub.comments(repo, issue, :issue, auth=auth)[1]
