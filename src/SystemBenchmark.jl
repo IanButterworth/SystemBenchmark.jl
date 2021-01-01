@@ -269,7 +269,7 @@ function compilecache_init(pkg)
     end
     return path, cachefile, concrete_deps
 end
-function slowGC(t=0.1)
+function slowGC(t=0.5)
     GC.gc()
     sleep(t)
 end
