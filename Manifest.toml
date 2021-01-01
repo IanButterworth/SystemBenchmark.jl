@@ -533,9 +533,9 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[VideoIO]]
 deps = ["ColorTypes", "Dates", "FFMPEG", "Glob", "ImageCore", "ImageTransformations", "Libdl", "ProgressMeter", "Requires"]
-git-tree-sha1 = "43567d876c7f19e3d554a86ebaed252613a55692"
+git-tree-sha1 = "6f51b13f34855cd1c0309a13fb5c6cd3695cb34f"
 uuid = "d6d074c3-1acf-5d4c-9a43-ef38773959a2"
-version = "0.7.4"
+version = "0.8.0"
 
 [[WoodburyMatrices]]
 deps = ["LinearAlgebra", "SparseArrays"]
