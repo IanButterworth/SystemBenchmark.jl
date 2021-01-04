@@ -90,7 +90,7 @@ function compare(ref::DataFrame, test::DataFrame)
 	return df
 end
 
-comparetoref() = comparetoref(runbenchmark(printsysinfo = false))
+comparetoref(;slowgcsleep=1.0) = comparetoref(runbenchmark(printsysinfo = false, slowgcsleep=slowgcsleep))
 
 function comparetoref(test::DataFrame; refname="ref.txt")
     ref = readbenchmark(joinpath(dirname(@__DIR__), "ref", refname))
@@ -110,7 +110,7 @@ function diskio(;num_zeros = 3:5, digits=1:9)
 	end
 end
 
-function runbenchmark(;printsysinfo = true)
+function runbenchmark(;printsysinfo = true, slowgcsleep = 1.0)
     ntests = 21
     if HAS_GPU[]
         ntests += 1
@@ -172,13 +172,13 @@ function runbenchmark(;printsysinfo = true)
     pkg = Base.PkgId("ExampleModule")
     t = @benchmark Base.compilecache($pkg) teardown=rm(joinpath($tmpdir,"compiled"), recursive=true, force=true); append!(df, DataFrame(cat="compilation", testname="compilecache", units="ms", res=(median(t).time / 1e6))); next!(prog)
 
-	path, cachefile, concrete_deps = compilecache_init(pkg)
+    path, cachefile, concrete_deps = compilecache_init(pkg)
     Logging.disable_logging(Logging.Debug)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
     # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue, so slowGC() is used as a teardown to slow the process
-    t = @benchmark success(io) setup=(io=Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid)) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
-    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC(); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
+    t = @benchmark success(io) setup=(io=Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid)) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
+    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
 
     t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
 	GC.gc()
