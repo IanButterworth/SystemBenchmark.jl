@@ -177,8 +177,8 @@ function runbenchmark(;printsysinfo = true, slowgcsleep = 1.0)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
     # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue, so slowGC() is used as a teardown to slow the process
-    t = @benchmark success(io) setup=(io=Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid)) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
-    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
+    t = @benchmark success(io) setup=(io=Base.create_expr_cache($pkg, $path, $cachefile, $concrete_deps)) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
+    t = @benchmark Base.create_expr_cache($pkg, $path, $cachefile, $concrete_deps) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
 
     t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
 	GC.gc()
@@ -193,7 +193,7 @@ end
 
 ## CPU
 function writevideo(imgstack; delete::Bool=false, path = joinpath(@__DIR__, "testvideo.mp4"))
-    VideoIO.encodevideo(path, imgstack, silent=true)
+    VideoIO.save(path, imgstack)
     delete && rm(path)
     return path
 end
@@ -250,7 +250,7 @@ function compilecache_init(pkg)
     path = Base.locate_package(pkg)
     path === nothing && throw(ArgumentError("$pkg not found during precompilation"))
     # decide where to put the resulting cache file
-    cachefile = Base.compilecache_path(pkg)
+    cachefile = Base.compilecache_path(pkg, UInt64(0)) # fake prefs hash
     # prune the directory with cache files
     if pkg.uuid !== nothing
         cachepath = dirname(cachefile)
