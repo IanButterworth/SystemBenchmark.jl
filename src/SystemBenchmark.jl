@@ -177,8 +177,8 @@ function runbenchmark(;printsysinfo = true, slowgcsleep = 1.0)
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
 
     # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue, so slowGC() is used as a teardown to slow the process
-    t = @benchmark success(io) setup=(io=Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid)) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
-    t = @benchmark Base.create_expr_cache($path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
+    t = @benchmark success(io) setup=(io=Base.create_expr_cache($pkg, $path, $cachefile, $concrete_deps, $pkg.uuid)) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
+    t = @benchmark Base.create_expr_cache($pkg, $path, $cachefile, $concrete_deps, $pkg.uuid) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
 
     t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
 	GC.gc()
