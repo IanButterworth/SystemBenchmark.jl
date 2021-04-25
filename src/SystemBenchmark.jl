@@ -250,7 +250,7 @@ function compilecache_init(pkg)
     path = Base.locate_package(pkg)
     path === nothing && throw(ArgumentError("$pkg not found during precompilation"))
     # decide where to put the resulting cache file
-    cachefile = Base.compilecache_path(pkg)
+    cachefile = Base.compilecache_path(pkg, UInt64(0)) # fake prefs hash
     # prune the directory with cache files
     if pkg.uuid !== nothing
         cachepath = dirname(cachefile)
