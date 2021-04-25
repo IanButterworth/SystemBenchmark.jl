@@ -193,7 +193,7 @@ end
 
 ## CPU
 function writevideo(imgstack; delete::Bool=false, path = joinpath(@__DIR__, "testvideo.mp4"))
-    VideoIO.encodevideo(path, imgstack, silent=true)
+    VideoIO.save(path, imgstack)
     delete && rm(path)
     return path
 end
