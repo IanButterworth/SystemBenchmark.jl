@@ -111,7 +111,7 @@ function diskio(;num_zeros = 3:5, digits=1:9)
 end
 
 function runbenchmark(;printsysinfo = true, slowgcsleep = 1.0)
-    ntests = 21
+    ntests = 18
     if HAS_GPU[]
         ntests += 1
     else
@@ -168,23 +168,11 @@ function runbenchmark(;printsysinfo = true, slowgcsleep = 1.0)
     prog.desc = "Compilation tests"; ProgressMeter.updateProgress!(prog)
 	tmpdir = mktempdir()
 	insert!(LOAD_PATH, 1, @__DIR__); insert!(DEPOT_PATH, 1, tmpdir)
-    Logging.disable_logging(Logging.Info)
-    pkg = Base.PkgId("ExampleModule")
-    t = @benchmark Base.compilecache($pkg) teardown=rm(joinpath($tmpdir,"compiled"), recursive=true, force=true); append!(df, DataFrame(cat="compilation", testname="compilecache", units="ms", res=(median(t).time / 1e6))); next!(prog)
-
-    path, cachefile, concrete_deps = compilecache_init(pkg)
-    Logging.disable_logging(Logging.Debug)
+    Logging.with_logger(NullLogger()) do
+        pkg = Base.PkgId("ExampleModule")
+        t = @benchmark Base.compilecache($pkg) teardown=rm(joinpath($tmpdir,"compiled"), recursive=true, force=true); append!(df, DataFrame(cat="compilation", testname="compilecache", units="ms", res=(median(t).time / 1e6))); next!(prog)
+    end
     deleteat!(LOAD_PATH,1); deleteat!(DEPOT_PATH,1)
-
-    # calling create_expr_cache rapidly on windows seems to cause a LLVM malloc issue, so slowGC() is used as a teardown to slow the process
-    t = @benchmark success(io) setup=(io=Base.create_expr_cache($pkg, $path, $cachefile, $concrete_deps)) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="success_create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
-    t = @benchmark Base.create_expr_cache($pkg, $path, $cachefile, $concrete_deps) teardown=slowGC($slowgcsleep); append!(df, DataFrame(cat="compilation", testname="create_expr_cache", units="ms", res=(median(t).time / 1e6))); next!(prog)
-
-    t = @benchmark runjuliabasic(); startupoverhead = (median(t).time / 1e6)
-	GC.gc()
-	tempout = joinpath(@__DIR__,"output.ji") #test in same location as julia depot
-    t = @benchmark output_ji($juliacmd, $tempout) samples=5 teardown=rm($tempout, force=true); append!(df, DataFrame(cat="compilation", testname="output-ji-substart", units="ms", res=(median(t).time / 1e6) - startupoverhead)); next!(prog)
-    rm(tempout, force=true)
     finish!(prog)
 
     @info "Printing of results may be truncated. To view the full results use `show(res, allrows=true, allcols=true)`"
