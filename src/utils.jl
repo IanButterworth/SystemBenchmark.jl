@@ -67,6 +67,7 @@ function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", is
             next!(prog)
         end
     end
+    finish!(prog)
     if transpose
         return restranspose(master_res)
     else
