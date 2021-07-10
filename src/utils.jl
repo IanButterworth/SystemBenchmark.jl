@@ -1,6 +1,7 @@
 using Pkg
 using GitHub
 using DataFrames
+using Downloads
 
 function pkgversion()
     projecttoml_filename = joinpath(dirname(dirname(@__FILE__)),"Project.toml")
@@ -47,7 +48,7 @@ function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", is
         for resulturl in resulturls
             username = "@$(comment.user.login)"
             datetime = comment.updated_at
-            file = download(resulturl)
+            file = Downloads.download(resulturl)
             res = readbenchmark(file)
             if ("units" in names(res))
                 "test_res" in names(res) && (res = DataFrame(cat=res.cat, testname=res.testname, units=res.units, res=res.test_res))
@@ -66,6 +67,7 @@ function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", is
             next!(prog)
         end
     end
+    finish!(prog)
     if transpose
         return restranspose(master_res)
     else
