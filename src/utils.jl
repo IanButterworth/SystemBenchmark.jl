@@ -25,7 +25,7 @@ function readprinteddataframe(str::String)
     return df
 end
 
-function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8,
+function getsubmittedbenchmarks(;repo::String="IanButterworth/SystemBenchmark.jl", issue::Int=8,
                     refname::String="ref.txt", transpose::Bool=true, authkey=get(ENV,"PERSONAL_ACCESS_TOKEN",nothing))
 
     if !isnothing(authkey)
@@ -41,14 +41,24 @@ function getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", is
     rename!(master_res, [:cat,:testname,:units,:ref])
     files = map(comment->map(x->string(x.match), collect(eachmatch(r"https:\/\/github\.com\/.*\.txt",comment.body, overlap=false))),comments)
     nresults = sum(length.(files))
-    filter!(x->occursin(".txt", x.body) && occursin("https://github.com/$repo/files/", x.body), comments)
+    filter!(x->occursin(r"https:\/\/github\.com\/.*\.txt", x.body), comments)
     prog = Progress(nresults, desc = "Downloading $(nresults) results... ")
+    filedict = Dict{String,String}()
+    @sync for comment in comments
+        resulturls = map(x->string(x.match), collect(eachmatch(r"https:\/\/github\.com\/.*\.txt",comment.body, overlap=false)))
+        for resulturl in resulturls
+            @async begin
+                filedict[resulturl] = Downloads.download(resulturl)
+                next!(prog)
+            end
+        end
+    end
     for comment in comments
         resulturls = map(x->string(x.match), collect(eachmatch(r"https:\/\/github\.com\/.*\.txt",comment.body, overlap=false)))
         for resulturl in resulturls
             username = "@$(comment.user.login)"
             datetime = comment.updated_at
-            file = Downloads.download(resulturl)
+            file = filedict[resulturl]
             res = readbenchmark(file)
             if ("units" in names(res))
                 "test_res" in names(res) && (res = DataFrame(cat=res.cat, testname=res.testname, units=res.units, res=res.test_res))
