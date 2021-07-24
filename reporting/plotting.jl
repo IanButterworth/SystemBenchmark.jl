@@ -14,7 +14,7 @@ function plotreport(df, figurepath; scale=2.0)
     end
 
     df[!,:mean_cpu] = map(x->mean([x.FloatMul,
-        x.FusedMulAdd,
+        # x.FusedMulAdd, # results unreliable before 0.2.1
         x.FloatSin,
         x.VecMulBroad,
         #x.CPUMatMul,
