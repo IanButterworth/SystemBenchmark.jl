@@ -40,7 +40,7 @@ function plotreport(df, figurepath; scale=2.0)
         ylabel!("compilecache time\n(relative to ref)")
         i += 1
     end
-    xlims!(0,10); ylims!(0,15)
+    xlims!(0,7); ylims!(0,7)
 
     p2 = plot()
     plot!(0:100,0:100,color=:gray,label="parity")
@@ -52,7 +52,7 @@ function plotreport(df, figurepath; scale=2.0)
         ylabel!("Julia startup time\n(relative to ref)")
         i += 1
     end
-    xlims!(0,10); ylims!(0,15)
+    xlims!(0,7); ylims!(0,7)
 
     p3 = plot()
     plot!(0:100,0:100,color=:gray)
@@ -64,7 +64,7 @@ function plotreport(df, figurepath; scale=2.0)
         ylabel!("Mean disk IO time\n(relative to ref)")
         i += 1
     end
-    xlims!(0,10); ylims!(0,45)
+    xlims!(0,7); ylims!(0,45)
 
     p4 = plot()
     plot!(0:100,0:100,color=:gray)

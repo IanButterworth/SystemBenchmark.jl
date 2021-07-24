@@ -145,3 +145,5 @@ getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=
 
 Some basic plotting exists at [reporting/plotting.jl](https://github.com/ianshmean/SystemBenchmark.jl/reporting/plotting.jl), which hasn't been included in the main package due to limitations in platform compatability of Plots.jl.
 
+![Results summary](reporting/summary_report.png)
+
