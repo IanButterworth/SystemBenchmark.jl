@@ -121,6 +121,19 @@ compare(ref::DataFrame, res::DataFrame)
 ## Crowdsourced Results
 
 Please consider submitting results to [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8).
+
+```
+julia> using SystemBenchmark
+
+julia> res = runbenchmark();
+
+julia> savebenchmark("results.txt", res)
+
+julia> show(res, allrows=true, allcols=true)
+```
+Then add the txt and copy the printed table into [SystemBenchmark.jl/issues/8](https://github.com/ianshmean/SystemBenchmark.jl/issues/8).
+
+
 Any `.txt` results files posted to that issue can easily be collated into a dataframe with:
 ```
 julia> comparison = getsubmittedbenchmarks()
