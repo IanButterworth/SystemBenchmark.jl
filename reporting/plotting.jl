@@ -6,13 +6,13 @@ using Statistics
 gr()
 
 function plotreport(df, figurepath; scale=2.0)
-    
+
     platforms = ["Windows", "macOS", "Linux (x86", "Linux (aarch"]
     colors = [:blue,:orange,:green,:purple]
     for col in 12:size(df,2)
         df[!,col] = df[!,col] ./ df[1,col]
     end
-    
+
     df[!,:mean_cpu] = map(x->mean([x.FloatMul,
         x.FusedMulAdd,
         x.FloatSin,
@@ -20,13 +20,13 @@ function plotreport(df, figurepath; scale=2.0)
         #x.CPUMatMul,
         x.MatMulBroad,
         x[Symbol("3DMulBroad")]]),eachrow(df))
-    
+
     df[!,:mean_diskio] = map(x->mean([x.DiskWrite1KB,
         x.DiskWrite1MB,
         x.DiskRead1KB,
         x.DiskRead1MB]),eachrow(df))
-    
-    
+
+
     p1 = plot(dpi=300)
     plot!(0:100,0:100,color=:gray)
     i = 1
@@ -81,13 +81,13 @@ function plotreport(df, figurepath; scale=2.0)
 end
 
 function memoryreport(df, figurepath; scale=2.0)
-    
+
     platforms = ["Windows", "macOS", "Linux (x86", "Linux (aarch"]
     colors = [:blue,:orange,:green,:purple]
     # for col in 12:size(df,2)
     #     df[!,col] = df[!,col] ./ df[1,col]
     # end
-    
+
     df[!,:mean_cpu] = map(x->mean([x.FloatMul,
         x.FusedMulAdd,
         x.FloatSin,
@@ -95,13 +95,13 @@ function memoryreport(df, figurepath; scale=2.0)
         #x.CPUMatMul,
         x.MatMulBroad,
         x[Symbol("3DMulBroad")]]),eachrow(df))
-    
+
     df[!,:mean_diskio] = map(x->mean([x.DiskWrite1KB,
         x.DiskWrite1MB,
         x.DiskRead1KB,
         x.DiskRead1MB]),eachrow(df))
-    
-    
+
+
     p1 = plot(dpi=300)
     i = 1
     for plat = platforms
@@ -159,7 +159,7 @@ function memoryreport(df, figurepath; scale=2.0)
         ylabel!("Bandwidth10MB")
         i += 1
     end
-    
+
     p4 = plot()
     i = 1
     for plat in platforms
@@ -181,7 +181,7 @@ end
 
 using SystemBenchmark
 df = getsubmittedbenchmarks()
-#savebenchmark(joinpath(@__DIR__,"all.csv"), df)
-# plotreport(df, joinpath(@__DIR__,"summary_cropped.png"))
-memoryreport(df, joinpath(@__DIR__,"memoryreport2.png"))
+savebenchmark(joinpath(@__DIR__,"all.csv"), df)
+plotreport(df, joinpath(@__DIR__,"summary_report.png"))
+memoryreport(df, joinpath(@__DIR__,"memory_report.png"))
 
