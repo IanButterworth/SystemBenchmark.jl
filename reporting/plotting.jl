@@ -5,10 +5,7 @@ using Plots
 using Statistics
 gr()
 
-function plotreport(df, figurepath; scale=2.0)
-
-    platforms = ["Windows", "macOS", "Linux (x86", "Linux (aarch"]
-    colors = [:blue,:orange,:green,:purple]
+function make_relative!(df)
     for col in 12:size(df,2)
         df[!,col] = df[!,col] ./ df[1,col]
     end
@@ -25,7 +22,13 @@ function plotreport(df, figurepath; scale=2.0)
         x.DiskWrite1MB,
         x.DiskRead1KB,
         x.DiskRead1MB]),eachrow(df))
+    return df
+end
 
+
+function plotreport(df, figurepath; scale=2.0)
+    platforms = ["Windows", "macOS", "Linux (x86", "Linux (aarch"]
+    colors = [:blue,:orange,:green,:purple]
 
     p1 = plot(dpi=300)
     plot!(0:100,0:100,color=:gray)
@@ -80,27 +83,10 @@ function plotreport(df, figurepath; scale=2.0)
     savefig(figurepath)
 end
 
-function memoryreport(df, figurepath; scale=2.0)
-
+function memoryreport(df_in, figurepath; scale=2.0)
+    df = deepcopy(df_in)
     platforms = ["Windows", "macOS", "Linux (x86", "Linux (aarch"]
     colors = [:blue,:orange,:green,:purple]
-    # for col in 12:size(df,2)
-    #     df[!,col] = df[!,col] ./ df[1,col]
-    # end
-
-    df[!,:mean_cpu] = map(x->mean([x.FloatMul,
-        x.FusedMulAdd,
-        x.FloatSin,
-        x.VecMulBroad,
-        #x.CPUMatMul,
-        x.MatMulBroad,
-        x[Symbol("3DMulBroad")]]),eachrow(df))
-
-    df[!,:mean_diskio] = map(x->mean([x.DiskWrite1KB,
-        x.DiskWrite1MB,
-        x.DiskRead1KB,
-        x.DiskRead1MB]),eachrow(df))
-
 
     p1 = plot(dpi=300)
     i = 1
@@ -181,6 +167,7 @@ end
 
 using SystemBenchmark
 df = getsubmittedbenchmarks()
+make_relative!(df)
 savebenchmark(joinpath(@__DIR__,"all.csv"), df)
 plotreport(df, joinpath(@__DIR__,"summary_report.png"))
 memoryreport(df, joinpath(@__DIR__,"memory_report.png"))
