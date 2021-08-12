@@ -5,6 +5,7 @@ using CSV
 using DataFrames
 using InteractiveUtils
 using LinearAlgebra
+using LinearAlgebra.BLAS
 using Logging
 using ProgressMeter
 using VideoIO
@@ -37,6 +38,12 @@ function getsysteminfo()
     push!(df, ["info","WORD_SIZE","",getinfofield(systeminfo, "WORD_SIZE:")])
     push!(df, ["info","LIBM","",getinfofield(systeminfo, "LIBM:")])
     push!(df, ["info","LLVM","",getinfofield(systeminfo, "LLVM:")])
+    @static if VERSION ≥ v"1.7-DEV"
+        push!(df, ["info","BLAS","",first(splitext(basename(first(BLAS.get_config().loaded_libs).libname)))])
+    else
+        push!(df, ["info","BLAS","",missing])
+    end
+    push!(df, ["info","BLAS_threads","",BLAS.get_num_threads()])
     if HAS_GPU[]
         push!(df, ["info","GPU","",CUDA.name(CUDA.device())])
     else
