@@ -110,7 +110,20 @@ function diskio(;num_zeros = 3:5, digits=1:9)
 	end
 end
 
-
+# Function to get the peakflops on a range of different BLAS threads.  By
+# default we go from 1 to the number of CPU threads, capped at 32, as that's the
+# maximum value of threads of the default OpenBLAS implementation, but users can
+# tweak this range to try a wider range, if they can/want.
+function get_peakflops(range = 1:min(32, Sys.CPU_THREADS))
+    orig_blas_threads = BLAS.get_num_threads()
+    res = map(range) do n
+        BLAS.set_num_threads(n)
+        (n, maximum(peakflops() for _ in 1:10))
+    end
+    # restore BLAS threads
+    BLAS.set_num_threads(orig_blas_threads)
+    return res
+end
 
 function runbenchmark(;printsysinfo = true, slowgcsleep = 1.0)
     ntests = 18
