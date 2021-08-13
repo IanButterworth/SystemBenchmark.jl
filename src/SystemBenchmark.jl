@@ -121,7 +121,7 @@ end
 
 
 function runbenchmark(;printsysinfo = true, slowgcsleep = 1.0)
-    ntests = 18
+    ntests = 21
     if HAS_GPU[]
         ntests += 1
     else
