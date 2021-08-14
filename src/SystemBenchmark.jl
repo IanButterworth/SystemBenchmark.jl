@@ -5,6 +5,7 @@ using CSV
 using DataFrames
 using InteractiveUtils
 using LinearAlgebra
+using LinearAlgebra.BLAS
 using Logging
 using ProgressMeter
 using VideoIO
@@ -31,12 +32,19 @@ function getsysteminfo()
 
     df = DataFrame(cat=String[], testname=String[], units=String[], res=Any[])
     push!(df, ["info","SysBenchVer","",string(pkgversion())])
-    push!(df, ["info","JuliaVer","",getinfofield(systeminfo, "Julia Version")])
+    push!(df, ["info","JuliaVer","",string(VERSION)])
     push!(df, ["info","OS","",getinfofield(systeminfo, "OS:")])
     push!(df, ["info","CPU","",getinfofield(systeminfo, "CPU:")])
-    push!(df, ["info","WORD_SIZE","",getinfofield(systeminfo, "WORD_SIZE:")])
-    push!(df, ["info","LIBM","",getinfofield(systeminfo, "LIBM:")])
+    push!(df, ["info","CPU_THREADS","",string(Sys.CPU_THREADS)])
+    push!(df, ["info","WORD_SIZE","",string(Sys.WORD_SIZE)])
+    push!(df, ["info","LIBM","",Base.libm_name])
     push!(df, ["info","LLVM","",getinfofield(systeminfo, "LLVM:")])
+    @static if VERSION ≥ v"1.7-DEV"
+        push!(df, ["info","BLAS","",first(splitext(basename(first(BLAS.get_config().loaded_libs).libname)))])
+    else
+        push!(df, ["info","BLAS","",missing])
+    end
+    push!(df, ["info","BLAS_threads","",BLAS.get_num_threads()])
     if HAS_GPU[]
         push!(df, ["info","GPU","",CUDA.name(CUDA.device())])
     else
@@ -113,7 +121,7 @@ end
 
 
 function runbenchmark(;printsysinfo = true, slowgcsleep = 1.0)
-    ntests = 18
+    ntests = 21
     if HAS_GPU[]
         ntests += 1
     else
