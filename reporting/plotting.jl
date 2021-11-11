@@ -167,7 +167,7 @@ end
 
 using SystemBenchmark
 df = getsubmittedbenchmarks()
-make_relative!(df)
+# make_relative!(df)
 savebenchmark(joinpath(@__DIR__,"all.csv"), df)
 plotreport(df, joinpath(@__DIR__,"summary_report.png"))
 memoryreport(df, joinpath(@__DIR__,"memory_report.png"))
