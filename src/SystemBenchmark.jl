@@ -71,10 +71,10 @@ function compare(ref::DataFrame, test::DataFrame)
 		!in(testname, unique(ref.testname)) && continue #test missing from reference benchmark
         refrow = ref[ref.testname .== testname, :]
         if testrow.cat[1] == "info"
-            if ismissing(refrow.res[1] != testrow.res[1]) || (refrow.res[1] != testrow.res[1])
-                factor = "Not Equal"
-            else
+            if isequal(refrow.res[1], testrow.res[1])
                 factor = "Equal"
+            else
+                factor = "Not Equal"
             end
             push!(df, Dict(:cat=>testrow.cat[1],
                 :testname=>testname,
