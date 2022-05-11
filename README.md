@@ -13,9 +13,10 @@ Submit your benchmarks to [SystemBenchmark.jl/issues/8](https://github.com/iansh
 ## Usage
 Run benchmark
 ```
-pkg> add SystemBenchmark
 julia> using SystemBenchmark
+
 julia> res = runbenchmark();
+
 julia> show(res, allrows=true, allcols=true)
 32×4 DataFrame
 │ Row │ cat         │ testname                  │ units  │ res                                      │
@@ -55,7 +56,7 @@ julia> show(res, allrows=true, allcols=true)
 │ 32  │ compilation │ output-ji-substart        │ ms     │ 7.2555                                   │
 ```
 
-Compare benchmark to the default reference (a 2019 MSI Linux i7 Laptop with )
+Compare benchmark to the default reference (a 2019 MSI Linux i7 Laptop) with:
 ```
 julia> comp = comparetoref(res)
 ```
@@ -136,7 +137,7 @@ julia> comparison = getsubmittedbenchmarks()
 ```
 or to specify another repo/issue:
 ```
-getsubmittedbenchmarks(;repo::String="ianshmean/SystemBenchmark.jl", issue::Int=8, refname::String="ref.txt", transpose::Bool=true)
+getsubmittedbenchmarks(;repo::String="IanButterworth/SystemBenchmark.jl", issue::Int=8, refname::String="ref.txt", transpose::Bool=true)
 ```
 
 Some basic plotting exists at [reporting/plotting.jl](https://github.com/ianshmean/SystemBenchmark.jl/reporting/plotting.jl), which hasn't been included in the main package due to limitations in platform compatability of Plots.jl.
