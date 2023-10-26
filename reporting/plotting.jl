@@ -7,7 +7,12 @@ gr()
 
 function make_relative!(df)
     for col in 12:size(df,2)
-        df[!,col] = df[!,col] ./ df[1,col]
+        names(df)[col] in ("CPU_THREADS", "BLAS", "BLAS_threads") && continue
+        try
+            df[!,col] = df[!,col] ./ df[1,col]
+        catch
+            @error "Failed to make col $(names(df)[col]) relative"
+        end
     end
 
     df[!,:mean_cpu] = map(x->mean([x.FloatMul,
@@ -167,7 +172,7 @@ end
 
 using SystemBenchmark
 df = getsubmittedbenchmarks()
-# make_relative!(df)
+make_relative!(df)
 savebenchmark(joinpath(@__DIR__,"all.csv"), df)
 plotreport(df, joinpath(@__DIR__,"summary_report.png"))
 memoryreport(df, joinpath(@__DIR__,"memory_report.png"))
