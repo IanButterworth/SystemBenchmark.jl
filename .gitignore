@@ -2,3 +2,4 @@
 .DS_Store
 src/output.ji
 Manifest.toml
+results.txt
