@@ -21,7 +21,7 @@ jobs:
             julia-arch: x86
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.julia-version }}
@@ -30,4 +30,8 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}_${{ matrix.julia-version }}_results.txt
+          path: results.txt
       - uses: julia-actions/julia-processcoverage@v1
